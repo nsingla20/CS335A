@@ -1,0 +1,29 @@
+Lexeme | Token | Count
+class|keyword|1
+test_25|identifier|1
+{|seprator|2
+public|keyword|1
+static|keyword|1
+void|keyword|1
+main|identifier|1
+(|seprator|3
+String|identifier|1
+args|identifier|1
+[|seprator|1
+]|seprator|1
+)|seprator|3
+int|keyword|2
+x|identifier|2
+=|operator|2
+20|literal|1
+;|seprator|3
+y|identifier|2
+18|literal|1
+if|keyword|1
+>|operator|1
+System|identifier|1
+.|seprator|2
+out|identifier|1
+println|identifier|1
+"x is greater than y"|literal|1
+}|seprator|2

@@ -1,0 +1,4 @@
+Lexeme | Token | Count
+1.|literal|1
+.|operator|1
+10|literal|1

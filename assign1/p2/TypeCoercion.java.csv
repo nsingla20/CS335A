@@ -1,0 +1,41 @@
+Lexeme | Token | Count
+public|keyword|2
+class|keyword|1
+TypeCoercion|identifier|1
+{|seprator|2
+static|keyword|1
+void|keyword|1
+main|identifier|1
+(|seprator|6
+String|identifier|1
+[|seprator|1
+]|seprator|1
+args|identifier|1
+)|seprator|6
+int|keyword|3
+intVar|identifier|3
+=|operator|8
+100|literal|1
+;|seprator|10
+long|keyword|3
+longVar|identifier|4
+float|keyword|1
+floatVar|identifier|2
+double|keyword|3
+doubleVar|identifier|2
+dVar|identifier|4
+3.141596|literal|1
+lVar|identifier|2
+iVar|identifier|2
+System|identifier|2
+.|seprator|4
+out|identifier|2
+println|identifier|2
+"Dummy print: "|literal|1
++|operator|7
+short|keyword|1
+3.14F|literal|1
+exp|identifier|2
+*|operator|1
+"Exp: "|literal|1
+}|seprator|2

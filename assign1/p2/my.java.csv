@@ -1,0 +1,10 @@
+Lexeme | Token | Count
+package|keyword|1
+testPackage|identifier|1
+;|seprator|1
+class|keyword|1
+Test|identifier|1
+{|seprator|1
+@|seprator|1
+!|operator|1
+~|operator|1
