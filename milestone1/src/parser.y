@@ -590,160 +590,214 @@ array_initializer:
 variable_initializer_list:
   variable_initializer {',' variable_initializer}
 
-	/* Blocks, Statements, and patterns */
+	/* blocks, statements, and patterns */
 
-Block:
-{ [BlockStatements] }
-BlockStatements:
-BlockStatement {BlockStatement}
-BlockStatement:
-LocalClassOrinterface_declaration
-LocalVariableDeclarationStatement
-Statement
-LocalClassOrinterface_declaration:
-class_declaration
-normal_interface_declaration
-LocalVariableDeclarationStatement:
-LocalVariableDeclaration ;
-LocalVariableDeclaration:
-{VariableModifier} LocalVariableType variable_declarator_list
-LocalVariableType:
-unann_type
-var
-Statement:
-StatementWithoutTrailingSubstatement
-LabeledStatement
-IfThenStatement
-IfThenElseStatement
-WhileStatement
-ForStatement
-StatementNoShortIf:
-StatementWithoutTrailingSubstatement
-LabeledStatementNoShortIf
-IfThenElseStatementNoShortIf
-WhileStatementNoShortIf
-ForStatementNoShortIf
-StatementWithoutTrailingSubstatement:
-Block
-EmptyStatement
-expressionStatement
-AssertStatement
-SwitchStatement
-DoStatement
-BreakStatement
-ContinueStatement
-ReturnStatement
-SynchronizedStatement
-ThrowStatement
-TryStatement
-YieldStatement
-EmptyStatement:
+block:
+  '{' [block_statements] '}'
 ;
-LabeledStatement:
-IDENTIFIER : Statement
-LabeledStatementNoShortIf:
-IDENTIFIER : StatementNoShortIf
-expressionStatement:
-Statementexpression ;
-Statementexpression:
-assignment
-pre_increment_expression
-pre_decrement_expression
-post_increment_expression
-post_decrement_expression
-method_invocation
-class_instance_creation_expression
-IfThenStatement:
-if ( expression ) Statement
-IfThenElseStatement:
-if ( expression ) StatementNoShortIf else Statement
-IfThenElseStatementNoShortIf:
-if ( expression ) StatementNoShortIf else StatementNoShortIf
-AssertStatement:
-assert expression ;
-assert expression : expression ;
-SwitchStatement:
-switch ( expression ) switch_block
+block_statements:
+  block_statement {block_statement}
+;
+block_statement:
+  local_class_or_interface_declaration
+| local_variable_declaration_statement
+| statement
+;
+local_class_or_interface_declaration:
+  class_declaration
+| normal_interface_declaration
+;
+local_variable_declaration_statement:
+  local_variable_declaration ';'
+;
+local_variable_declaration:
+  {variable_modifier} local_variable_type variable_declarator_list
+;
+local_variable_type:
+  unann_type
+| "var"
+;
+statement:
+  statement_without_trailing_substatement
+| labeled_statement
+| if_then_statement
+| if_then_else_statement
+| while_statement
+| for_statement
+;
+statement_no_short_if:
+  statement_without_trailing_substatement
+| labeled_statement_no_short_if
+| if_then_else_statement_no_short_if
+| while_statement_no_short_if
+| for_statement_no_short_if
+;
+statement_without_trailing_substatement:
+  block
+| empty_statement
+| expression_statement
+| assert_statement
+| switch_statement
+| do_statement
+| break_statement
+| continue_statement
+| return_statement
+| synchronized_statement
+| throw_statement
+| try_statement
+| yield_statement
+;
+empty_statement:
+  ';'
+;
+labeled_statement:
+  IDENTIFIER ':' statement
+;
+labeled_statement_no_short_if:
+  IDENTIFIER ':' statement_no_short_if
+;
+expression_statement:
+  statement_expression ';'
+;
+statement_expression:
+  assignment
+| pre_increment_expression
+| pre_decrement_expression
+| post_increment_expression
+| post_decrement_expression
+| method_invocation
+| class_instance_creation_expression
+;
+if_then_statement:
+  "if" '(' expression ')' statement
+;
+if_then_else_statement:
+  "if" '(' expression ')' statement_no_short_if "else" statement
+;
+if_then_else_statement_no_short_if:
+  "if" '(' expression ')' statement_no_short_if "else" statement_no_short_if
+;
+assert_statement:
+  "assert" expression ';'
+| "assert" expression ':' expression ';'
+;
+switch_statement:
+  "switch" '(' expression ')' switch_block
+;
 switch_block:
-{ SwitchRule {SwitchRule} }
-{ {switch_blockStatementGroup} {SwitchLabel :} }
-SwitchRule:
-SwitchLabel -> expression ;
-SwitchLabel -> Block
-SwitchLabel -> ThrowStatement
-switch_blockStatementGroup:
-SwitchLabel : {SwitchLabel :} BlockStatements
-SwitchLabel:
-case CaseConstant {, CaseConstant}
-default
-CaseConstant:
-conditional_expression
-WhileStatement:
-while ( expression ) Statement
-WhileStatementNoShortIf:
-while ( expression ) StatementNoShortIf
-DoStatement:
-do Statement while ( expression ) ;
-ForStatement:
-BasicForStatement
-EnhancedForStatement
-ForStatementNoShortIf:
-BasicForStatementNoShortIf
-EnhancedForStatementNoShortIf
-BasicForStatement:
-for ( [ForInit] ; [expression] ; [ForUpdate] ) Statement
-BasicForStatementNoShortIf:
-for ( [ForInit] ; [expression] ; [ForUpdate] ) StatementNoShortIf
-ForInit:
-StatementexpressionList
-LocalVariableDeclaration
-ForUpdate:
-StatementexpressionList
-StatementexpressionList:
-Statementexpression {, Statementexpression}
-EnhancedForStatement:
-for ( LocalVariableDeclaration : expression ) Statement
-EnhancedForStatementNoShortIf:
-for ( LocalVariableDeclaration : expression ) StatementNoShortIf
-BreakStatement:
-break [IDENTIFIER] ;
-YieldStatement:
-yield expression ;
-ContinueStatement:
-continue [IDENTIFIER] ;
-ReturnStatement:
-return [expression] ;
-ThrowStatement:
-throw expression ;
-SynchronizedStatement:
-synchronized ( expression ) Block
-TryStatement:
-try Block Catches
-try Block [Catches] Finally
-TryWithResourcesStatement
-Catches:
-CatchClause {CatchClause}
-CatchClause:
-catch ( CatchFormalParameter ) Block
-CatchFormalParameter:
-{VariableModifier} CatchType variable_declarator_id
-CatchType:
-UnannClassType {| ClassType}
-Finally:
-finally Block
-TryWithResourcesStatement:
-try ResourceSpecification Block [Catches] [Finally]
-ResourceSpecification:
-( ResourceList [;] )
-ResourceList:
-Resource {; Resource}
-Resource:
-LocalVariableDeclaration
-VariableAccess
+  '{' switch_rule {switch_rule} ';'
+| '{' {switch_block_statement_group} {switch_label ':'} '}'
+;
+switch_rule:
+  switch_label "->" expression ';'
+| switch_label "->" block
+| switch_label "->" throw_statement
+;
+switch_block_statement_group:
+  switch_label ':' {switch_label ':'} block_statements
+;
+switch_label:
+  "case" case_constant {, case_constant}
+  "default"
+;
+case_constant:
+  conditional_expression
+;
+while_statement:
+  "while" '(' expression ')' statement
+;
+while_statement_no_short_if:
+  "while" '(' expression ')' statement_no_short_if
+;
+do_statement:
+  "do" statement "while" '(' expression ')' ';'
+;
+for_statement:
+  basic_for_statement
+| enhanced_for_statement
+;
+for_statement_no_short_if:
+  basic_for_statement_no_short_if
+| enhanced_for_statement_no_short_if
+;
+basic_for_statement:
+  "for" '(' [for_init] ';' [expression] ';' [for_update] ')' statement
+;
+basic_for_statement_no_short_if:
+  "for" '(' [for_init] ';' [expression] ';' [for_update] ')' statement_no_short_if
+;
+for_init:
+  statement_expression_list
+  local_variable_declaration
+;
+for_update:
+  statement_expression_list
+;
+statement_expression_list:
+  statement_expression {',' statement_expression}
+;
+enhanced_for_statement:
+  "for" '(' local_variable_declaration ':' expression ')' statement
+;
+enhanced_for_statement_no_short_if:
+  "for" '(' local_variable_declaration ':' expression ')' statement_no_short_if
+;
+break_statement:
+  "break" [IDENTIFIER] ';'
+;
+yield_statement:
+  "yield" expression ';'
+;
+continue_statement:
+  "continue" [IDENTIFIER] ';'
+;
+return_statement:
+  "return" [expression] ';'
+;
+throw_statement:
+  "throw" expression ';'
+;
+synchronized_statement:
+  "synchronized" '(' expression ')' block
+;
+try_statement:
+  "try" block catches
+  "try" block [catches] finally
+  try_with_resources_statement
+;
+catches:
+  catch_clause {catch_clause}
+;
+catch_clause:
+  "catch" '(' catch_formal_parameter ')' block
+;
+catch_formal_parameter:
+  {variable_modifier} catch_type variable_declarator_id
+;
+catch_type:
+  unann_class_type {'|' class_type}
+;
+finally:
+  "finally" block
+;
+try_with_resources_statement:
+  "try" resource_specification block [catches] [finally]
+;
+resource_specification:
+  '(' resource_list [';'] ')'
+;
+resource_list:
+  resource {';' resource}
+;
+resource:
+  local_variable_declaration
+  variable_access
+;
 pattern:
-Typepattern
-Typepattern:
-LocalVariableDeclaration
+  type_pattern
+;
+type_pattern:
+  local_variable_declaration
 
 	/* expressions */
 
