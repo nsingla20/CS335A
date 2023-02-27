@@ -12,23 +12,26 @@ extern int yylineno;
 vector<pair<string,vector<int>>> nodes;
 int startNode;
 
-int yylex(void);
+
 void yyerror(char const *);
 int createNode(string);
 void addChild(int, int);
 
 %}
-
+%code provides {
+void yyerror (char const*);
+int yylex (YYSTYPE*);
+}
 /* BISON DECLARATIONS */
-
-
-%token KEYWORD
-%token IDENTIFIER
-%token LITERAL
-%token ASSIGN
-%token OPERATOR
-%token SEP
-%token TERM
+%union{
+  char* s;
+}
+%pure-parser
+%token <s> KEYWORD
+%token <s> IDENTIFIER
+%token <s> LITERAL
+%token <s> OPERATOR
+%token <s> SEP
 
 
 %%
@@ -36,8 +39,7 @@ void addChild(int, int);
 
     /* GRAMMAR RULES */
 input:
-  expr ';'					{ $$ = createNode("Start"); $2 = createNode(";");
-  							  addChild($$, $1); addChild($$, $2); startNode = $$; }
+  class_declaration ';'					{}
 ;
 space.opt.multiopt:
   space.opt.multiopt space.opt
@@ -50,6 +52,12 @@ space.opt:
 dot_ind.multiopt:
   dot_ind.multiopt '.' IDENTIFIER
 | /*empty*/
+;
+type_IDENTIFIER:
+  IDENTIFIER
+;
+unqualified_method_IDENTIFIER:
+  IDENTIFIER
 ;
 	/* Types, Values and Variables */
 type:
@@ -272,7 +280,7 @@ com_type_name.multiopt:
   com_type_name.multiopt ',' type_name
 | /*empty*/
 ;
-to_module_names.opt
+to_module_names.opt:
   "to" module_name com_module_name.multiopt
 | to_module_names.opt "to" module_name com_module_name.multiopt
 | /* empty */
@@ -421,8 +429,8 @@ unann_class_or_interface_type:
 ;
 unann_class_type:
   type_IDENTIFIER type_arguments.opt
-| package_name . annotation.multiopt type_IDENTIFIER type_arguments.opt
-| unann_class_or_interface_type . annotation.multiopt type_IDENTIFIER type_arguments.opt
+| package_name '.' annotation.multiopt type_IDENTIFIER type_arguments.opt
+| unann_class_or_interface_type '.' annotation.multiopt type_IDENTIFIER type_arguments.opt
 ;
 type_arguments.opt:
   type_arguments
@@ -606,7 +614,7 @@ enum_body_declarations:
   ';' class_body_declaration.multiopt
 ;
 record_declaration:
-  class_modifier.multiopt record type_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body
+  class_modifier.multiopt "record" type_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body
 ;
 record_header:
   '(' record_component_list.opt ')'
@@ -659,7 +667,7 @@ interface_declaration:
 | annotation_interface_declaration
 ;
 normal_interface_declaration:
-  interface_modifier.multiopt "interface" type_identifier type_parameters.opt interface_extends.opt interface_permits.opt interface_body
+  interface_modifier.multiopt "interface" type_IDENTIFIER type_parameters.opt interface_extends.opt interface_permits.opt interface_body
 ;
 interface_modifier.multiopt:
   interface_modifier.multiopt interface_modifier
@@ -720,7 +728,7 @@ interface_method_modifier:
 | "abstract" | "default" | "static" | "strictfp"
 ;
 annotation_interface_declaration:
-  interface_modifier.multiopt '@' "interface" type_identifier annotation_interface_body
+  interface_modifier.multiopt '@' "interface" type_IDENTIFIER annotation_interface_body
 ;
 annotation_interface_body:
   '{' annotation_interface_member_declaration.multiopt '}'
@@ -1085,7 +1093,11 @@ semcol_resource.multiopt:
 ;
 resource:
   local_variable_declaration
-  variable_access
+| variable_access
+;
+variable_access:
+  expression_name
+| field_access
 ;
 pattern:
   type_pattern
@@ -1112,8 +1124,8 @@ primary_no_new_array:
 | method_reference
 ;
 class_literal:
-  type_name space.opt.multiopt '.' 'class'
-| numeric_type space.opt.multiopt '.' 'class'
+  type_name space.opt.multiopt '.' "class"
+| numeric_type space.opt.multiopt '.' "class"
 | "boolean" space.opt.multiopt "." "class"
 | "void" "." "class"
 ;

@@ -1,24 +1,18 @@
 prefix	= src
-OBJS	= $(prefix)/parser.o $(prefix)/scanner.o
+OBJS	= $(prefix)/parser.tab.c $(prefix)/lex.yy.c
 
 CC	= g++
 
 javacompiler:	$(OBJS)
-		$(CC) $(OBJS) -o javacompiler -lfl
+		$(CC) $(OBJS) -o javacompiler
 
-$(prefix)/scanner.o:	$(prefix)/lex.yy.c
-		$(CC) -c $(prefix)/lex.yy.c -o $(prefix)/scanner.o
+$(prefix)/lex.yy.c:	$(prefix)/prob2.l $(prefix)/parser.tab.h
+		flex -o ${prefix}/lex.yy.c $(prefix)/prob2.l
 
-$(prefix)/lex.yy.c:	$(prefix)/scanner.lex 
-		flex $(prefix)/scanner.lex
 
-$(prefix)/parser.o:	$(prefix)/parser.tab.c
-		$(CC) -c $(prefix)/parser.tab.c -o $(prefix)/parser.o
+$(prefix)/parser.tab.c $(prefix)/parser.tab.h:	$(prefix)/parser.y
+		bison -o ${prefix}/parser.tab.c -d $(prefix)/parser.y
 
-$(prefix)/parser.tab.c:	$(prefix)/parser.y
-		bison -d -v $(prefix)/parser.y
-
-$(prefix)/scanner.o: 		$(prefix)/parser.tab.h
 
 clean:
-	rm -f *.o *~ $(prefix)/lex.yy.c $(prefix)/parser.tab.c $(prefix)/parser.tab.h $(prefix)/parser.output $(prefix)/javacompiler.output avacompiler
+	rm -f ${prefix}/*.c ${prefix}/*.h javacompiler

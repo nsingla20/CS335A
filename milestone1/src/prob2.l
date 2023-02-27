@@ -1,0 +1,115 @@
+
+%{
+#include "parser.tab.h"
+%}
+hex         [0-9]|[a-f]|[A-F]
+unicode     \\u{hex}{4}
+
+LineTerminator    \n|\r|\n\r
+
+WhiteSpace        \t|{LineTerminator}|\f|[ ]
+
+Comment             {TraditionalComment}|{EndOfLineComment}
+TraditionalComment  [/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]
+EndOfLineComment    "//".*
+
+Identifier          {IdentifierChars}
+IdentifierChars     {JavaLetter}{JavaLetterOrDigit}*
+JavaLetter          [A-Za-z\$_]
+JavaLetterOrDigit   {JavaLetter}|[0-9]
+
+ReservedKeyword     abstract|continue|for|new|switch|assert|default|if|package|synchronized|boolean|do|goto|private|this|break|double|implements|protected|throw|byte|else|import|public|throws|case|enum|instanceof|return|transient|catch|extends|int|short|try|char|final|interface|static|void|class|finally|long|strictfp|volatile|const|float|native|super|while|_
+ContextualKeyword   exports|opens|requires|uses|module|permits|sealed|var|non-sealed|provides|to|with|open|record|transitive|yield
+Keyword             {ReservedKeyword}|{ContextualKeyword}
+
+
+
+Literal                 {IntegerLiteral}|{FloatingPointLiteral}|{BooleanLiteral}|{CharacterLiteral}|{StringLiteral}|{TextBlock}|{NullLiteral}
+
+IntegerLiteral          {DecimalIntegerLiteral}|{HexIntegerLiteral}|{OctalIntegerLiteral}|{BinaryIntegerLiteral}
+
+DecimalIntegerLiteral   {DecimalNumeral}{IntegerTypeSuffix}?
+HexIntegerLiteral       {HexNumeral}{IntegerTypeSuffix}?
+OctalIntegerLiteral     {OctalNumeral}{IntegerTypeSuffix}?
+BinaryIntegerLiteral    {BinaryNumeral}{IntegerTypeSuffix}?
+IntegerTypeSuffix       [lL]
+
+DecimalNumeral          0|({NonZeroDigit}({Digits}?))|{NonZeroDigit}{Underscores}{Digits}
+NonZeroDigit            [1-9]
+Digits                  {Digit}|({Digit}({DigitsAndUnderscores}?){Digit})
+Digit                   [0-9]
+DigitsAndUnderscores    {DigitOrUnderscore}+
+DigitOrUnderscore       {Digit}|_
+Underscores             _+
+
+HexNumeral              (0x{HexDigits})|(0X{HexDigits})
+HexDigits               {HexDigit}|({HexDigit}({HexDigitsAndUnderscores}?){HexDigit})
+HexDigit                [0-9a-fA-F]
+HexDigitsAndUnderscores {HexDigitOrUnderscore}+
+HexDigitOrUnderscore    {HexDigit}|_
+
+OctalNumeral                (0{OctalDigits})|(0{Underscores}{OctalDigits})
+OctalDigits                 ({OctalDigit})|({OctalDigit}({OctalDigitsAndUnderscores}?){OctalDigit})
+OctalDigit                  [0-7]
+OctalDigitsAndUnderscores   {OctalDigitOrUnderscore}+
+OctalDigitOrUnderscore      {OctalDigit}|_
+
+BinaryNumeral              (0b{BinaryDigits})|(0B{BinaryDigits})
+BinaryDigits               {BinaryDigit}|({BinaryDigit}({BinaryDigitsAndUnderscores}?){BinaryDigit})
+BinaryDigit                [01]
+BinaryDigitsAndUnderscores {BinaryDigitOrUnderscore}+
+BinaryDigitOrUnderscore    {BinaryDigit}|_
+
+FloatingPointLiteral        {DecimalFloatingPointLiteral}|{HexadecimalFloatingPointLiteral}
+
+DecimalFloatingPointLiteral ({Digits}\.{Digits}?{ExponentPart}?{FloatTypeSuffix}?)|(\.{Digits}{ExponentPart}?{FloatTypeSuffix}?)|({Digits}{ExponentPart}{FloatTypeSuffix}?)|({Digits}{ExponentPart}?{FloatTypeSuffix})
+ExponentPart                {ExponentIndicator}|{SignedInteger}
+ExponentIndicator           [eE]
+SignedInteger               {Sign}?{Digits}
+Sign                        [+-]
+FloatTypeSuffix             [fFdD]
+
+HexadecimalFloatingPointLiteral {HexSignificand}{BinaryExponent}{FloatTypeSuffix}?
+HexSignificand                  ({HexNumeral}(\.?))|(0[xX]{HexDigits}\.{HexDigits})
+BinaryExponent                  {BinaryExponentIndicator}{SignedInteger}
+BinaryExponentIndicator         [pP]
+
+BooleanLiteral              true|false
+
+CharacterLiteral            '{SingleCharacter}'|'{EscapeSequence}'
+SingleCharacter             [^\n'\\]
+
+StringLiteral               \"{StringCharacter}*\"
+StringCharacter             [^\n\"\\]|{EscapeSequence}
+
+TextBlock                   \"\"\"{TextBlockWhiteSpace}*{LineTerminator}{TextBlockContent}\"\"\"
+TextBlockWhiteSpace         [ \t\x0c]
+TextBlockContent            ({TextBlockCharacter}*)
+TextBlockCharacter          (\"){0,2}({TextBlockCharacterNotq}+)
+TextBlockCharacterNotq      [^\"]|{EscapeSequence}
+
+EscapeSequence              \\b|\\s|\\t|\\n|\\f|\\r|\\{LineTerminator}|\\\"|\\'|\\\\|{OctalEscape}
+OctalEscape                 \\{OctalDigit}|\\{OctalDigit}{OctalDigit}|\\[0-3]{OctalDigit}{OctalDigit}
+
+NullLiteral                 null
+
+Separator                   \(|\)|\{|\}|\[|\]|;|,|\.|\.\.\.|@|::
+
+Operator                    =|>|<|!|~|\?|\->|==|>=|<=|!=|&&|\|\||\+\+|\-\-|\+|\-|\*|\/|&|\||\^|%|<<|>>|>>>|\+=|\-=|\*=|\/=|&=|\|=|\^=|%=|<<=|>>=|>>>=|:
+
+%option noyywrap
+%option bison-bridge
+%option yylineno
+
+%%
+{WhiteSpace}    {;}
+{Comment}       {;}
+{Keyword}       {yylval->s = strdup(yytext);return KEYWORD;}
+{Separator}     {yylval->s = strdup(yytext);return SEP;}
+{Literal}       {yylval->s = strdup(yytext);return LITERAL;}
+{Operator}      {yylval->s = strdup(yytext);return OPERATOR;}
+{Identifier}    {yylval->s = strdup(yytext);return IDENTIFIER;}
+.               {;}
+%%
+
+
