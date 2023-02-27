@@ -26,6 +26,7 @@ int yylex (YYSTYPE*);
 %union{
   char* s;
 }
+%define parse.trace
 %pure-parser
 %token <s> KEYWORD
 %token <s> IDENTIFIER
@@ -39,7 +40,7 @@ int yylex (YYSTYPE*);
 
     /* GRAMMAR RULES */
 input:
-  class_declaration ';'					{}
+  compilation_unit
 ;
 space.opt.multiopt:
   space.opt.multiopt space.opt
@@ -132,16 +133,9 @@ type_bound:
   "extends" type_variable
 | "extends" class_or_interface_type additional_bound.multiopt
 ;
-additional_bound.multiopt:
-  additional_bound
-| additional_bound.multiopt additional_bound
-| /* empty */
 additional_bound:
   '&' interface_type
 ;
-type_arguments.opt:
-  type_arguments
-| /* empty */
 type_arguments:
   '<' type_argument_list '>'
 ;
@@ -217,16 +211,14 @@ package_declaration:
   package_modifier.multiopt "package" IDENTIFIER dot_ind.multiopt ';'
 ;
 package_modifier.multiopt:
-  package_modifier
-| package_modifier.multiopt package_modifier
+  package_modifier.multiopt package_modifier
 | /* empty */
 ;
 package_modifier:
   annotation
 ;
 import_declaration.multiopt:
-  import_declaration
-| import_declaration.multiopt import_declaration
+  import_declaration.multiopt import_declaration
 | /* empty */
 ;
 import_declaration:
@@ -242,7 +234,7 @@ type_import_on_demand_declaration:
   "import" package_or_type_name '.' '*' ';'
 ;
 single_static_import_declaration:
-| "import" "static" type_name '.' IDENTIFIER ';'
+  "import" "static" type_name '.' IDENTIFIER ';'
 ;
 static_import_on_demand_declaration:
 | "import" "static" type_name '.' '*' ';'
@@ -253,7 +245,7 @@ top_level_class_or_interface_declaration.multiopt:
 | /* empty */
 ;
 top_level_class_or_interface_declaration:
-| class_declaration
+  class_declaration
 | interface_declaration
 | ';'
 ;
@@ -327,7 +319,16 @@ class_permits.opt:
 | /*empty*/
 ;
 class_modifier:
-  annotation | "public" | "protected" | "private" | "abstract" | "static" | "final" | "sealed" | "non-sealed" | "strictfp"
+  annotation
+| "public"
+| "protected"
+| "private"
+| "abstract"
+| "static"
+| "final"
+| "sealed"
+| "non-sealed"
+| "strictfp"
 ;
 type_parameters:
   '<' type_parameter_list '>'
@@ -382,8 +383,14 @@ field_modifier.multiopt:
 | /*empty*/
 ;
 field_modifier:
-  annotation | "public" | "protected" | "private"
-| "static" | "final" | "transient" | "volatile"
+  annotation
+| "public"
+| "protected"
+| "private"
+| "static"
+| "final"
+| "transient"
+| "volatile"
 ;
 variable_declarator_list:
   variable_declarator com_variable_declarator.multiopt
@@ -455,8 +462,16 @@ method_modifier.multiopt:
 | /*empty*/
 ;
 method_modifier:
-  annotation | "public" | "protected" | "private"
-  "abstract" | "static" | "final" | "synchronized" | "native" | "strictfp"
+  annotation
+| "public"
+| "protected"
+| "private"
+|"abstract"
+| "static"
+| "final"
+| "synchronized"
+| "native"
+| "strictfp"
 ;
 method_header:
   result method_declarator throws.opt
@@ -542,7 +557,10 @@ constructor_modifier.multiopt:
 | /*empty*/
 ;
 constructor_modifier:
-  annotation | "public" | "protected" | "private"
+  annotation
+| "public"
+| "protected"
+| "private"
 ;
 constructor_declarator:
   type_parameters.opt simple_type_name '(' receiver_parameter_com.opt formal_parameter_list.opt ')'
@@ -633,7 +651,7 @@ com_record_component.multiopt:
 
 record_component:
   record_component_modifier.multiopt unann_type IDENTIFIER
-  variable_arity_record_component
+| variable_arity_record_component
 ;
 record_component_modifier.multiopt:
   record_component_modifier.multiopt record_component_modifier
@@ -682,8 +700,15 @@ interface_permits.opt:
 | /*empty*/
 ;
 interface_modifier:
-  annotation | "public" | "protected" | "private"
-| "abstract" | "static" | "sealed" | "non-sealed" | "strictfp"
+  annotation
+| "public"
+| "protected"
+| "private"
+| "abstract"
+| "static"
+| "sealed"
+| "non-sealed"
+| "strictfp"
 ;
 interface_extends:
   "extends" interface_type_list
@@ -713,8 +738,10 @@ constant_modifier.multiopt:
 | /*empty*/
 ;
 constant_modifier:
-  annotation | "public"
-| "static" | "final"
+  annotation
+| "public"
+| "static"
+| "final"
 ;
 interface_method_declaration:
   interface_method_modifier.multiopt method_header method_body
@@ -724,8 +751,13 @@ interface_method_modifier.multiopt:
 | /*empty*/
 ;
 interface_method_modifier:
-  annotation | "public" | "private"
-| "abstract" | "default" | "static" | "strictfp"
+  annotation
+| "public"
+| "private"
+| "abstract"
+| "default"
+| "static"
+| "strictfp"
 ;
 annotation_interface_declaration:
   interface_modifier.multiopt '@' "interface" type_IDENTIFIER annotation_interface_body
@@ -756,7 +788,8 @@ default_value.opt:
 | /*empty*/
 ;
 annotation_interface_element_modifier:
-  annotation | "public"
+  annotation
+| "public"
 | "abstract"
 ;
 default_value:
@@ -1253,7 +1286,18 @@ left_hand_side:
 | array_access
 ;
 assignment_operator:
-  '=' | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | ">>>=" | "&=" | "^=" | "|="
+  '='
+| "*="
+| "/="
+| "%="
+| "+="
+| "-="
+| "<<="
+| ">>="
+| ">>>="
+| "&="
+| "^="
+| "|="
 ;
 conditional_expression:
   conditional_or_expression
@@ -1346,8 +1390,8 @@ post_decrement_expression:
 ;
 cast_expression:
   '(' primitive_type ')' unary_expression
-  '(' reference_type additional_bound.multiopt ')' unary_expression_not_plus_minus
-  '(' reference_type additional_bound.multiopt ')' lambda_expression
+| '(' reference_type additional_bound.multiopt ')' unary_expression_not_plus_minus
+| '(' reference_type additional_bound.multiopt ')' lambda_expression
 ;
 additional_bound.multiopt:
   additional_bound.multiopt additional_bound
@@ -1414,6 +1458,6 @@ int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");
 	yyparse();
 	fclose(yyin);
-	build_graph();
+	// build_graph();
 	return 0;
 }
