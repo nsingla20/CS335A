@@ -465,7 +465,6 @@ int yylex (YYSTYPE*);
 %type<i> yield_statement
 %%
 
-
     /* GRAMMAR RULES */
 input:
   compilation_unit			{$$=createNode("input");if($1 !=-1)addChild($$,$1);}
@@ -1736,7 +1735,6 @@ constant_expression:
 ;
 
 %%
-
 
 
 /* EPILOGUE */
