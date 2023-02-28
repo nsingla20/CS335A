@@ -153,7 +153,7 @@ int yylex (YYSTYPE*);
 %type<i> additional_bound.multiopt
 %type<i> additive_expression
 %type<i> ambiguous_name
-%type<i> an_sp.multiopt
+%type<i> annotation_sb.multiopt
 %type<i> and_expression
 %type<i> annotation
 %type<i> annotation.multiopt
@@ -244,7 +244,7 @@ int yylex (YYSTYPE*);
 %type<i> dm.multiopt
 %type<i> do_statement
 %type<i> dot_annotation.multiopt_IDENTIFIER.multiopt
-%type<i> dot_ind.multiopt
+%type<i> dot_identifier.multiopt
 %type<i> element_value
 %type<i> element_valueList
 %type<i> element_valueList.opt
@@ -413,7 +413,7 @@ int yylex (YYSTYPE*);
 %type<i> try_statement
 %type<i> try_with_resources_statement
 %type<i> type
-%type<i> type_IDENTIFIER
+%type<i> type_identifier
 %type<i> type_argument
 %type<i> type_argument.multiopt
 %type<i> type_argument_list
@@ -444,7 +444,7 @@ int yylex (YYSTYPE*);
 %type<i> unary_expression
 %type<i> unary_expression_not_plus_minus
 %type<i> unqualified_class_instance_creation_expression
-%type<i> unqualified_method_IDENTIFIER
+%type<i> unqualified_method_identifier
 %type<i> variable_access
 %type<i> variable_arity_parameter
 %type<i> variable_arity_record_component
@@ -463,7 +463,11 @@ int yylex (YYSTYPE*);
 %type<i> wildcard_bounds
 %type<i> wildcard_bounds.opt
 %type<i> yield_statement
+
+
+
 %%
+
 
     /* GRAMMAR RULES */
 input:
@@ -487,16 +491,17 @@ modifier:
 | TOK_transient			{$$=createNode("modifier");addChild($$,createNode($1));}
 | TOK_volatile			{$$=createNode("modifier");addChild($$,createNode($1));}
 ;
-dot_ind.multiopt:
-  dot_ind.multiopt TOK_46 TOK_IDENTIFIER			{$$=createNode("dot_ind.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));}
+dot_identifier.multiopt:
+  dot_identifier.multiopt TOK_46 TOK_IDENTIFIER			{$$=createNode("dot_identifier.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));}
 | /*empty*/			{$$=-1;}
 ;
-type_IDENTIFIER:
-  TOK_IDENTIFIER			{$$=createNode("type_IDENTIFIER");addChild($$,createNode($1));}
+type_identifier:
+  TOK_IDENTIFIER			{$$=createNode("type_identifier");addChild($$,createNode($1));}
 ;
-unqualified_method_IDENTIFIER:
-  TOK_IDENTIFIER			{$$=createNode("unqualified_method_IDENTIFIER");addChild($$,createNode($1));}
+unqualified_method_identifier:
+  TOK_IDENTIFIER			{$$=createNode("unqualified_method_identifier");addChild($$,createNode($1));}
 ;
+
 	/* Types, Values and Variables */
 type:
   primitive_type			{$$=createNode("type");if($1 !=-1)addChild($$,$1);}
@@ -531,15 +536,15 @@ class_or_interface_type:
 | interface_type			{$$=createNode("class_or_interface_type");if($1 !=-1)addChild($$,$1);}
 ;
 class_type:
-  annotation.multiopt type_IDENTIFIER type_arguments.opt			{$$=createNode("class_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
-| package_name TOK_46 annotation.multiopt type_IDENTIFIER type_arguments.opt			{$$=createNode("class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
-| class_or_interface_type TOK_46 annotation.multiopt type_IDENTIFIER type_arguments.opt			{$$=createNode("class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
+  annotation.multiopt type_identifier type_arguments.opt			{$$=createNode("class_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
+| package_name TOK_46 annotation.multiopt type_identifier type_arguments.opt			{$$=createNode("class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
+| class_or_interface_type TOK_46 annotation.multiopt type_identifier type_arguments.opt			{$$=createNode("class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
 ;
 interface_type:
   class_type			{$$=createNode("interface_type");if($1 !=-1)addChild($$,$1);}
 ;
 type_variable:
-  annotation.multiopt type_IDENTIFIER			{$$=createNode("type_variable");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+  annotation.multiopt type_identifier			{$$=createNode("type_variable");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
 ;
 array_type:
   primitive_type dims			{$$=createNode("array_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
@@ -547,18 +552,17 @@ array_type:
 | type_variable dims			{$$=createNode("array_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
 ;
 dims:
-  annotation.multiopt TOK_91 TOK_93 an_sp.multiopt			{$$=createNode("dims");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);}
+  annotation.multiopt TOK_91 TOK_93 annotation_sb.multiopt			{$$=createNode("dims");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);}
 ;
-an_sp.multiopt:
-  an_sp.multiopt annotation.multiopt TOK_91 TOK_93			{$$=createNode("an_sp.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));addChild($$,createNode($4));}
+annotation_sb.multiopt:
+  annotation_sb.multiopt annotation.multiopt TOK_91 TOK_93			{$$=createNode("annotation_sb.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));addChild($$,createNode($4));}
 | /*empty*/			{$$=-1;}
 ;
 type_parameter:
-  type_parameter_modifier.multiopt type_IDENTIFIER type_bound.opt			{$$=createNode("type_parameter");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
+  type_parameter_modifier.multiopt type_identifier type_bound.opt			{$$=createNode("type_parameter");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
 ;
 type_parameter_modifier.multiopt:
-  type_parameter_modifier			{$$=createNode("type_parameter_modifier.multiopt");if($1 !=-1)addChild($$,$1);}
-| type_parameter_modifier.multiopt type_parameter_modifier			{$$=createNode("type_parameter_modifier.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+  type_parameter_modifier.multiopt type_parameter_modifier			{$$=createNode("type_parameter_modifier.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
 | /* empty */			{$$=-1;}
 type_parameter_modifier:
   annotation			{$$=createNode("type_parameter_modifier");if($1 !=-1)addChild($$,$1);}
@@ -568,8 +572,12 @@ type_bound.opt:
 | /* empty */			{$$=-1;}
 ;
 type_bound:
-   TOK_extends  type_variable			{$$=createNode("type_bound");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
-|  TOK_extends  class_or_interface_type additional_bound.multiopt			{$$=createNode("type_bound");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
+   TOK_extends type_variable			{$$=createNode("type_bound");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
+|  TOK_extends class_or_interface_type additional_bound.multiopt			{$$=createNode("type_bound");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
+;
+additional_bound.multiopt:
+  additional_bound.multiopt additional_bound			{$$=createNode("additional_bound.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+| /*empty*/			{$$=-1;}
 ;
 additional_bound:
   TOK_38 interface_type			{$$=createNode("additional_bound");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
@@ -578,11 +586,10 @@ type_arguments:
   TOK_60 type_argument_list TOK_62			{$$=createNode("type_arguments");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));}
 ;
 type_argument_list:
-  type_argument type_argument.multiopt			{$$=createNode("type_argument_list");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+  type_argument com_type_argument.multiopt			{$$=createNode("type_argument_list");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
 ;
-type_argument.multiopt:
-  TOK_44 type_argument			{$$=createNode("type_argument.multiopt");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
-| type_argument.multiopt TOK_44 type_argument			{$$=createNode("type_argument.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
+com_type_argument.multiopt:
+  type_argument.multiopt TOK_44 type_argument			{$$=createNode("com_type_argument.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
 | /* empty */			{$$=-1;}
 type_argument:
   reference_type			{$$=createNode("type_argument");if($1 !=-1)addChild($$,$1);}
@@ -598,6 +605,7 @@ wildcard_bounds.opt:
 wildcard_bounds:
    TOK_extends  reference_type			{$$=createNode("wildcard_bounds");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
 |  TOK_super  reference_type			{$$=createNode("wildcard_bounds");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
+;
 
 
   /* Names */
@@ -610,15 +618,15 @@ package_name:
 | package_name TOK_46 TOK_IDENTIFIER			{$$=createNode("package_name");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));}
 ;
 type_name:
-  type_IDENTIFIER			{$$=createNode("type_name");if($1 !=-1)addChild($$,$1);}
-| package_or_type_name TOK_46 type_IDENTIFIER			{$$=createNode("type_name");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
+  type_identifier			{$$=createNode("type_name");if($1 !=-1)addChild($$,$1);}
+| package_or_type_name TOK_46 type_identifier			{$$=createNode("type_name");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
 ;
 expression_name:
   TOK_IDENTIFIER			{$$=createNode("expression_name");addChild($$,createNode($1));}
 | ambiguous_name TOK_46 TOK_IDENTIFIER			{$$=createNode("expression_name");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));}
 ;
 method_name:
-  unqualified_method_IDENTIFIER			{$$=createNode("method_name");if($1 !=-1)addChild($$,$1);}
+  unqualified_method_identifier			{$$=createNode("method_name");if($1 !=-1)addChild($$,$1);}
 ;
 package_or_type_name:
   TOK_IDENTIFIER			{$$=createNode("package_or_type_name");addChild($$,createNode($1));}
@@ -646,7 +654,7 @@ package_declaration.opt:
 | /* empty */			{$$=-1;}
 ;
 package_declaration:
-  package_modifier.multiopt  TOK_package  TOK_IDENTIFIER dot_ind.multiopt TOK_59			{$$=createNode("package_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);addChild($$,createNode($5));}
+  package_modifier.multiopt  TOK_package  TOK_IDENTIFIER dot_identifier.multiopt TOK_59			{$$=createNode("package_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);addChild($$,createNode($5));}
 ;
 package_modifier.multiopt:
   package_modifier.multiopt package_modifier			{$$=createNode("package_modifier.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
@@ -678,8 +686,7 @@ static_import_on_demand_declaration:
    TOK_import  TOK_static type_name TOK_46 TOK_42 TOK_59			{$$=createNode("static_import_on_demand_declaration");addChild($$,createNode($1));addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));addChild($$,createNode($5));addChild($$,createNode($6));}
 ;
 top_level_class_or_interface_declaration.multiopt:
-  top_level_class_or_interface_declaration			{$$=createNode("top_level_class_or_interface_declaration.multiopt");if($1 !=-1)addChild($$,$1);}
-| top_level_class_or_interface_declaration.multiopt top_level_class_or_interface_declaration			{$$=createNode("top_level_class_or_interface_declaration.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+  top_level_class_or_interface_declaration.multiopt top_level_class_or_interface_declaration			{$$=createNode("top_level_class_or_interface_declaration.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
 | /* empty */			{$$=-1;}
 ;
 top_level_class_or_interface_declaration:
@@ -688,35 +695,41 @@ top_level_class_or_interface_declaration:
 | TOK_59			{$$=createNode("top_level_class_or_interface_declaration");addChild($$,createNode($1));}
 ;
 module_declaration:
-  annotation.multiopt open.opt  TOK_module  TOK_IDENTIFIER dot_ind.multiopt TOK_123 module_directive.multiopt TOK_125			{$$=createNode("module_declaration");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));addChild($$,createNode($4));if($5 !=-1)addChild($$,$5);addChild($$,createNode($6));if($7 !=-1)addChild($$,$7);addChild($$,createNode($8));}
+  annotation.multiopt open.opt  TOK_module  TOK_IDENTIFIER dot_identifier.multiopt TOK_123 module_directive.multiopt TOK_125			{$$=createNode("module_declaration");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));addChild($$,createNode($4));if($5 !=-1)addChild($$,$5);addChild($$,createNode($6));if($7 !=-1)addChild($$,$7);addChild($$,createNode($8));}
 ;
 open.opt:
   TOK_open			{$$=createNode("open.opt");addChild($$,createNode($1));}
 | /*empty*/			{$$=-1;}
 ;
 module_directive.multiopt:
-  module_directive			{$$=createNode("module_directive.multiopt");if($1 !=-1)addChild($$,$1);}
-| module_directive.multiopt module_directive			{$$=createNode("module_directive.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+  module_directive.multiopt module_directive			{$$=createNode("module_directive.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
 | /* empty */			{$$=-1;}
 ;
 module_directive:
-  TOK_requires modifier.multiopt module_name TOK_59
+  TOK_requires requires_modifier.multiopt module_name TOK_59
 | TOK_exports package_name to_module_names.opt TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));}
 | TOK_opens package_name to_module_names.opt TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));}
 | TOK_uses type_name TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));}
 | TOK_provides type_name TOK_with type_name com_type_name.multiopt TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);addChild($$,createNode($6));}
 ;
-com_type_name.multiopt:
-  com_type_name.multiopt TOK_44 type_name			{$$=createNode("com_type_name.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
-| /*empty*/			{$$=-1;}
-;
 to_module_names.opt:
   TOK_to module_name com_module_name.multiopt			{$$=createNode("to_module_names.opt");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
-| to_module_names.opt TOK_to module_name com_module_name.multiopt			{$$=createNode("to_module_names.opt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);}
 | /* empty */			{$$=-1;}
 com_module_name.multiopt:
   com_module_name.multiopt TOK_44 module_name			{$$=createNode("com_module_name.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
 | /*empty*/			{$$=-1;}
+;
+com_type_name.multiopt:
+  com_type_name.multiopt TOK_44 type_name			{$$=createNode("com_type_name.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);}
+| /*empty*/			{$$=-1;}
+;
+requires_modifier.multiopt:
+  requires_modifier.multiopt requires_modifier		{$$=createNode("requires_modifier.multiopt");if($1 !=-1)addChild($$,$1); if($2 !=-1)addChild($$,$2);}
+| /* empty */			{$$=-1;}
+;
+requires_modifier:
+  TOK_transitive			{$$=createNode("requires_modifier");addChild($$,createNode($1));}
+| TOK_static				{$$=createNode("requires_modifier");addChild($$,createNode($1));}
 ;
 
   /* Classes */
@@ -726,7 +739,7 @@ class_declaration:
 | record_declaration			{$$=createNode("class_declaration");if($1 !=-1)addChild($$,$1);}
 ;
 normal_class_declaration:
-  modifier.multiopt  TOK_class  type_IDENTIFIER  type_parameters.opt class_extends.opt class_implements.opt class_permits.opt class_body			{$$=createNode("normal_class_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);if($6 !=-1)addChild($$,$6);if($7 !=-1)addChild($$,$7);if($8 !=-1)addChild($$,$8);}
+  modifier.multiopt  TOK_class  type_identifier  type_parameters.opt class_extends.opt class_implements.opt class_permits.opt class_body			{$$=createNode("normal_class_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);if($6 !=-1)addChild($$,$6);if($7 !=-1)addChild($$,$7);if($8 !=-1)addChild($$,$8);}
 ;
 type_parameters.opt:
   type_parameters			{$$=createNode("type_parameters.opt");if($1 !=-1)addChild($$,$1);}
@@ -835,9 +848,9 @@ unann_class_or_interface_type:
 | unann_interface_type			{$$=createNode("unann_class_or_interface_type");if($1 !=-1)addChild($$,$1);}
 ;
 unann_class_type:
-  type_IDENTIFIER type_arguments.opt			{$$=createNode("unann_class_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
-| package_name TOK_46 annotation.multiopt type_IDENTIFIER type_arguments.opt			{$$=createNode("unann_class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
-| unann_class_or_interface_type TOK_46 annotation.multiopt type_IDENTIFIER type_arguments.opt			{$$=createNode("unann_class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
+  type_identifier type_arguments.opt			{$$=createNode("unann_class_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
+| package_name TOK_46 annotation.multiopt type_identifier type_arguments.opt			{$$=createNode("unann_class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
+| unann_class_or_interface_type TOK_46 annotation.multiopt type_identifier type_arguments.opt			{$$=createNode("unann_class_type");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
 ;
 type_arguments.opt:
   type_arguments			{$$=createNode("type_arguments.opt");if($1 !=-1)addChild($$,$1);}
@@ -847,7 +860,7 @@ unann_interface_type:
   unann_class_type			{$$=createNode("unann_interface_type");if($1 !=-1)addChild($$,$1);}
 ;
 unann_type_variable:
-  type_IDENTIFIER			{$$=createNode("unann_type_variable");if($1 !=-1)addChild($$,$1);}
+  type_identifier			{$$=createNode("unann_type_variable");if($1 !=-1)addChild($$,$1);}
 ;
 unann_array_type:
   unann_primitive_type dims			{$$=createNode("unann_array_type");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
@@ -940,7 +953,7 @@ constructor_declarator:
   type_parameters.opt simple_type_name TOK_40 receiver_parameter_com.opt formal_parameter_list.opt TOK_41			{$$=createNode("constructor_declarator");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);addChild($$,createNode($6));}
 ;
 simple_type_name:
-  type_IDENTIFIER			{$$=createNode("simple_type_name");if($1 !=-1)addChild($$,$1);}
+  type_identifier			{$$=createNode("simple_type_name");if($1 !=-1)addChild($$,$1);}
 ;
 constructor_body:
   TOK_123 explicit_constructor_invocation.opt block_statements.opt TOK_125			{$$=createNode("constructor_body");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));}
@@ -964,7 +977,7 @@ argument_list.opt:
 | /*empty*/			{$$=-1;}
 ;
 enum_declaration:
-  modifier.multiopt TOK_enum type_IDENTIFIER class_implements.opt enum_body			{$$=createNode("enum_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
+  modifier.multiopt TOK_enum type_identifier class_implements.opt enum_body			{$$=createNode("enum_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
 ;
 enum_body:
   TOK_123 enum_constant_list.opt com.opt enum_body_declarations.opt TOK_125			{$$=createNode("enum_body");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);addChild($$,createNode($5));}
@@ -1006,7 +1019,7 @@ enum_body_declarations:
   TOK_59 class_body_declaration.multiopt			{$$=createNode("enum_body_declarations");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);}
 ;
 record_declaration:
-  modifier.multiopt TOK_record type_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body			{$$=createNode("record_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);if($6 !=-1)addChild($$,$6);if($7 !=-1)addChild($$,$7);}
+  modifier.multiopt TOK_record type_identifier type_parameters.opt record_header class_implements.opt record_body			{$$=createNode("record_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);if($6 !=-1)addChild($$,$6);if($7 !=-1)addChild($$,$7);}
 ;
 record_header:
   TOK_40 record_component_list.opt TOK_41			{$$=createNode("record_header");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));}
@@ -1059,7 +1072,7 @@ interface_declaration:
 | annotation_interface_declaration			{$$=createNode("interface_declaration");if($1 !=-1)addChild($$,$1);}
 ;
 normal_interface_declaration:
-  modifier.multiopt TOK_interface type_IDENTIFIER type_parameters.opt interface_extends.opt interface_permits.opt interface_body			{$$=createNode("normal_interface_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);if($6 !=-1)addChild($$,$6);if($7 !=-1)addChild($$,$7);}
+  modifier.multiopt TOK_interface type_identifier type_parameters.opt interface_extends.opt interface_permits.opt interface_body			{$$=createNode("normal_interface_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);if($6 !=-1)addChild($$,$6);if($7 !=-1)addChild($$,$7);}
 ;
 interface_extends.opt:
   interface_extends			{$$=createNode("interface_extends.opt");if($1 !=-1)addChild($$,$1);}
@@ -1096,7 +1109,7 @@ interface_method_declaration:
   modifier.multiopt method_header method_body			{$$=createNode("interface_method_declaration");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);}
 ;
 annotation_interface_declaration:
-  modifier.multiopt TOK_64 TOK_interface type_IDENTIFIER annotation_interface_body			{$$=createNode("annotation_interface_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
+  modifier.multiopt TOK_64 TOK_interface type_identifier annotation_interface_body			{$$=createNode("annotation_interface_declaration");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));if($4 !=-1)addChild($$,$4);if($5 !=-1)addChild($$,$5);}
 ;
 annotation_interface_body:
   TOK_123 annotation_interface_member_declaration.multiopt TOK_125			{$$=createNode("annotation_interface_body");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));}
@@ -1490,7 +1503,8 @@ class_literal:
 | TOK_void TOK_46 TOK_class			{$$=createNode("class_literal");addChild($$,createNode($1));addChild($$,createNode($2));addChild($$,createNode($3));}
 ;
 dm.multiopt:
-  dm.multiopt TOK_91 TOK_93			{$$=createNode("dm.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));}
+  TOK_91 TOK_93
+| dm.multiopt TOK_91 TOK_93			{$$=createNode("dm.multiopt");if($1 !=-1)addChild($$,$1);addChild($$,createNode($2));addChild($$,createNode($3));}
 | /*empty*/			{$$=-1;}
 ;
 class_instance_creation_expression:
@@ -1723,10 +1737,6 @@ cast_expression:
 | TOK_40 reference_type additional_bound.multiopt TOK_41 unary_expression_not_plus_minus			{$$=createNode("cast_expression");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));if($5 !=-1)addChild($$,$5);}
 | TOK_40 reference_type additional_bound.multiopt TOK_41 lambda_expression			{$$=createNode("cast_expression");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));if($5 !=-1)addChild($$,$5);}
 ;
-additional_bound.multiopt:
-  additional_bound.multiopt additional_bound			{$$=createNode("additional_bound.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
-| /*empty*/			{$$=-1;}
-;
 switch_expression:
   TOK_switch TOK_40 expression TOK_41 switch_block			{$$=createNode("switch_expression");addChild($$,createNode($1));addChild($$,createNode($2));if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));if($5 !=-1)addChild($$,$5);}
 ;
@@ -1753,6 +1763,26 @@ int createNode(string lbl) {
 void addChild(int parent, int child) {
 	nodes[parent].second.push_back(child);
 	cout << "----Added Child - " << nodes[parent].first << "->" << nodes[child].first << endl;
+}
+
+int get_leaf_or_multi_child_node(int node) {
+	if (nodes[node].second.size() == 1) {
+		return get_leaf_or_multi_child_node(nodes[node].second[0]);
+	}
+	return node;
+}
+
+void fix_ast(int node) {
+	// if child node has only one child remove the child node and add the child of child node to parent node
+	for (int i = 0; i < nodes[node].second.size(); i++) {
+		int child = nodes[node].second[i];
+		fix_ast(child);
+		int final_child = get_leaf_or_multi_child_node(child);
+		if (final_child != child) {
+			nodes[node].second[i] = final_child;
+			cout << "----Fixed AST - " << nodes[node].first << "->" << nodes[child].first << " to " << nodes[node].first << "->" << nodes[final_child].first << endl;
+		}
+	}
 }
 
 void build_graph() {
@@ -1785,9 +1815,10 @@ void build_graph() {
 
 int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");
-  yydebug=1;
+  	yydebug=1;
 	yyparse();
 	fclose(yyin);
+	fix_ast(startNode);
 	build_graph();
 	return 0;
 }
