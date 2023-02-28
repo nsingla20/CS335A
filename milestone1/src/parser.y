@@ -467,7 +467,7 @@ int yylex (YYSTYPE*);
 
     /* GRAMMAR RULES */
 input:
-  compilation_unit			{$$=createNode("input");if($1 !=-1)addChild($$,$1);}
+  compilation_unit			{$$=createNode("input");if($1 !=-1)addChild($$,$1); startNode=$$;}
 ;
 modifier.multiopt:
   modifier.multiopt modifier			{$$=createNode("modifier.multiopt");if($1 !=-1)addChild($$,$1);if($2 !=-1)addChild($$,$2);}
@@ -700,7 +700,7 @@ module_directive.multiopt:
 | /* empty */			{$$=-1;}
 ;
 module_directive:
-  TOK_requires modifier.multiopt module_name ;
+  TOK_requires modifier.multiopt module_name TOK_59
 | TOK_exports package_name to_module_names.opt TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));}
 | TOK_opens package_name to_module_names.opt TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);if($3 !=-1)addChild($$,$3);addChild($$,createNode($4));}
 | TOK_uses type_name TOK_59			{$$=createNode("module_directive");addChild($$,createNode($1));if($2 !=-1)addChild($$,$2);addChild($$,createNode($3));}
@@ -1746,13 +1746,13 @@ void yyerror(char const *s){
 int createNode(string lbl) {
 	vector<int> v;
 	nodes.push_back({lbl, v});
-	// cout << "Node Created - " << lbl << endl;
+	cout << "----Node Created - " << lbl << endl;
 	return nodes.size()-1;
 }
 
 void addChild(int parent, int child) {
 	nodes[parent].second.push_back(child);
-	// cout << "Added Child - " << label[parent] << "->" << label[child] << endl;
+	cout << "----Added Child - " << nodes[parent].first << "->" << nodes[child].first << endl;
 }
 
 void build_graph() {
