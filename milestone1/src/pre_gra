@@ -1,0 +1,37 @@
+%{
+
+/* PROLOGUE */
+
+#include <bits/stdc++.h>
+using namespace std;
+
+extern FILE *yyin;
+extern int yylineno;
+#define YYDEBUG 1
+// Data structures to store the tree
+vector<pair<string,vector<int>>> nodes;
+int startNode;
+
+
+void yyerror(char const *);
+int createNode(string);
+void addChild(int, int);
+
+%}
+%code provides {
+void yyerror (char const*);
+int yylex (YYSTYPE*);
+}
+/* BISON DECLARATIONS */
+%union{
+  char* s;
+  int i;
+}
+
+%verbose
+%define parse.trace
+%define api.pure
+%token <s> TOK_IDENTIFIER
+%token <s> TOK_LITERAL
+
+

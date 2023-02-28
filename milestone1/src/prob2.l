@@ -105,6 +105,7 @@ Operator                    =|>|<|!|~|\?|\->|==|>=|<=|!=|&&|\|\||\+\+|\-\-|\+|\-
 %%
 {WhiteSpace}    {;}
 {Comment}       {;}
+
 "!"			{yylval->s=strdup(yytext);return TOK_33;}
 "!="			{yylval->s=strdup(yytext);return TOK_3361;}
 "%"			{yylval->s=strdup(yytext);return TOK_37;}
@@ -178,7 +179,6 @@ Operator                    =|>|<|!|~|\?|\->|==|>=|<=|!=|&&|\|\||\+\+|\-\-|\+|\-
 "interface"			{yylval->s=strdup(yytext);return TOK_interface;}
 "long"			{yylval->s=strdup(yytext);return TOK_long;}
 "module"			{yylval->s=strdup(yytext);return TOK_module;}
-"native"			{yylval->s=strdup(yytext);return TOK_native;}
 "new"			{yylval->s=strdup(yytext);return TOK_new;}
 "open"			{yylval->s=strdup(yytext);return TOK_open;}
 "opens"			{yylval->s=strdup(yytext);return TOK_opens;}
@@ -219,8 +219,9 @@ Operator                    =|>|<|!|~|\?|\->|==|>=|<=|!=|&&|\|\||\+\+|\-\-|\+|\-
 "}"			{yylval->s=strdup(yytext);return TOK_125;}
 "~"			{yylval->s=strdup(yytext);return TOK_126;}
 
-{Literal}       {yylval->s = strdup(yytext);return LITERAL;}
-{Identifier}    {yylval->s = strdup(yytext);return IDENTIFIER;}
+
+{Literal}       {yylval->s = strdup(yytext);return TOK_LITERAL;}
+{Identifier}    {yylval->s = strdup(yytext);return TOK_IDENTIFIER;}
 .               {;}
 %%
 

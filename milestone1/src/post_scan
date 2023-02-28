@@ -1,0 +1,8 @@
+
+
+{Literal}       {yylval->s = strdup(yytext);return TOK_LITERAL;}
+{Identifier}    {yylval->s = strdup(yytext);return TOK_IDENTIFIER;}
+.               {;}
+%%
+
+

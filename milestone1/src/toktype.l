@@ -4,7 +4,7 @@
 #include <fstream>
 using namespace std;
 ofstream fo;
-map<char,int> m;
+vector<string> v;
 %}
 
 %option c++
@@ -14,20 +14,8 @@ Operator                    =|>|<|!|~|\?|\->|==|>=|<=|!=|&&|\|\||\+\+|\-\-|\+|\-
 word                        [A-Za-z]+
 Insi                        {Separator}|{Operator}|{word}
 %%
-\n                          {}
-({Separator}|{Operator})/\n                     {
-    fo<<"%token <s> TOK_";
-    for(int i=0;i<yyleng;i++){
-        fo<<int(yytext[i]);
-    }
-    fo<<" \""<<yytext<<"\"";
-    fo<<endl;
-}
-{word}/\n                     {
-    fo<<"%token <s> TOK_";
-    fo<<yytext;
-    fo<<" \""<<yytext<<"\"";
-    fo<<endl;
+[a-zA-Z_.]+/[:]              {
+    v.push_back(yytext);
 }
 %%
 
@@ -36,12 +24,15 @@ int main(int argc,char **argv){
     ++argv, --argc;  /* skip over program name */
     FlexLexer* lexer = new yyFlexLexer;
     ifstream fin;
-    fin.open("tokens");
-    fo.open("tokenreppar");
+    fin.open("trygra");
+    fo.open("typesgra");
     lexer->switch_streams(fin,cout);
     lexer->yylex();
-    fin.close();
-    fo.close();
+    std::sort(v.begin(), v.end());
+    v.erase(std::unique(v.begin(), v.end()), v.end());
+    for(auto i:v){
+        fo<<"%type<i> "<<i<<endl;
+    }
     return 0;
 }
 

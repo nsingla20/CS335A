@@ -1,113 +1,112 @@
-%token <i> TOK_33
-%token <i> TOK_3361
-%token <i> TOK_37
-%token <i> TOK_3761
-%token <i> TOK_38
-%token <i> TOK_3838
-%token <i> TOK_3861
-%token <i> TOK_40
-%token <i> TOK_41
-%token <i> TOK_42
-%token <i> TOK_4261
-%token <i> TOK_43
-%token <i> TOK_4343
-%token <i> TOK_4361
-%token <i> TOK_44
-%token <i> TOK_45
-%token <i> TOK_4545
-%token <i> TOK_4561
-%token <i> TOK_4562
-%token <i> TOK_46
-%token <i> TOK_464646
-%token <i> TOK_47
-%token <i> TOK_4761
-%token <i> TOK_58
-%token <i> TOK_5858
-%token <i> TOK_59
-%token <i> TOK_60
-%token <i> TOK_6060
-%token <i> TOK_606061
-%token <i> TOK_6061
-%token <i> TOK_61
-%token <i> TOK_6161
-%token <i> TOK_62
-%token <i> TOK_6261
-%token <i> TOK_6262
-%token <i> TOK_626261
-%token <i> TOK_626262
-%token <i> TOK_62626261
-%token <i> TOK_63
-%token <i> TOK_64
-%token <i> TOK_91
-%token <i> TOK_93
-%token <i> TOK_94
-%token <i> TOK_9461
-%token <i> TOK_abstract
-%token <i> TOK_assert
-%token <i> TOK_boolean
-%token <i> TOK_break
-%token <i> TOK_byte
-%token <i> TOK_case
-%token <i> TOK_catch
-%token <i> TOK_char
-%token <i> TOK_class
-%token <i> TOK_continue
-%token <i> TOK_default
-%token <i> TOK_do
-%token <i> TOK_double
-%token <i> TOK_else
-%token <i> TOK_enum
-%token <i> TOK_exports
-%token <i> TOK_extends
-%token <i> TOK_final
-%token <i> TOK_finally
-%token <i> TOK_float
-%token <i> TOK_for
-%token <i> TOK_if
-%token <i> TOK_implements
-%token <i> TOK_import
-%token <i> TOK_instanceof
-%token <i> TOK_int
-%token <i> TOK_interface
-%token <i> TOK_long
-%token <i> TOK_module
-%token <i> TOK_native
-%token <i> TOK_new
-%token <i> TOK_open
-%token <i> TOK_opens
-%token <i> TOK_package
-%token <i> TOK_permits
-%token <i> TOK_private
-%token <i> TOK_protected
-%token <i> TOK_provides
-%token <i> TOK_public
-%token <i> TOK_record
-%token <i> TOK_requires
-%token <i> TOK_return
-%token <i> TOK_sealed
-%token <i> TOK_short
-%token <i> TOK_static
-%token <i> TOK_strictfp
-%token <i> TOK_super
-%token <i> TOK_switch
-%token <i> TOK_synchronized
-%token <i> TOK_this
-%token <i> TOK_throw
-%token <i> TOK_throws
-%token <i> TOK_to
-%token <i> TOK_transient
-%token <i> TOK_transitive
-%token <i> TOK_try
-%token <i> TOK_uses
-%token <i> TOK_var
-%token <i> TOK_void
-%token <i> TOK_volatile
-%token <i> TOK_while
-%token <i> TOK_with
-%token <i> TOK_yield
-%token <i> TOK_123
-%token <i> TOK_124
-%token <i> TOK_12461
-%token <i> TOK_124124
-%token <i> TOK_125
-%token <i> TOK_126
+%token <s> TOK_33 "!"
+%token <s> TOK_3361 "!="
+%token <s> TOK_37 "%"
+%token <s> TOK_3761 "%="
+%token <s> TOK_38 "&"
+%token <s> TOK_3838 "&&"
+%token <s> TOK_3861 "&="
+%token <s> TOK_40 "("
+%token <s> TOK_41 ")"
+%token <s> TOK_42 "*"
+%token <s> TOK_4261 "*="
+%token <s> TOK_43 "+"
+%token <s> TOK_4343 "++"
+%token <s> TOK_4361 "+="
+%token <s> TOK_44 ","
+%token <s> TOK_45 "-"
+%token <s> TOK_4545 "--"
+%token <s> TOK_4561 "-="
+%token <s> TOK_4562 "->"
+%token <s> TOK_46 "."
+%token <s> TOK_464646 "..."
+%token <s> TOK_47 "/"
+%token <s> TOK_4761 "/="
+%token <s> TOK_58 ":"
+%token <s> TOK_5858 "::"
+%token <s> TOK_59 ";"
+%token <s> TOK_60 "<"
+%token <s> TOK_6060 "<<"
+%token <s> TOK_606061 "<<="
+%token <s> TOK_6061 "<="
+%token <s> TOK_61 "="
+%token <s> TOK_6161 "=="
+%token <s> TOK_62 ">"
+%token <s> TOK_6261 ">="
+%token <s> TOK_6262 ">>"
+%token <s> TOK_626261 ">>="
+%token <s> TOK_626262 ">>>"
+%token <s> TOK_62626261 ">>>="
+%token <s> TOK_63 "?"
+%token <s> TOK_64 "@"
+%token <s> TOK_91 "["
+%token <s> TOK_93 "]"
+%token <s> TOK_94 "^"
+%token <s> TOK_9461 "^="
+%token <s> TOK_abstract "abstract"
+%token <s> TOK_assert "assert"
+%token <s> TOK_boolean "boolean"
+%token <s> TOK_break "break"
+%token <s> TOK_byte "byte"
+%token <s> TOK_case "case"
+%token <s> TOK_catch "catch"
+%token <s> TOK_char "char"
+%token <s> TOK_class "class"
+%token <s> TOK_continue "continue"
+%token <s> TOK_default "default"
+%token <s> TOK_do "do"
+%token <s> TOK_double "double"
+%token <s> TOK_else "else"
+%token <s> TOK_enum "enum"
+%token <s> TOK_exports "exports"
+%token <s> TOK_extends "extends"
+%token <s> TOK_final "final"
+%token <s> TOK_finally "finally"
+%token <s> TOK_float "float"
+%token <s> TOK_for "for"
+%token <s> TOK_if "if"
+%token <s> TOK_implements "implements"
+%token <s> TOK_import "import"
+%token <s> TOK_instanceof "instanceof"
+%token <s> TOK_int "int"
+%token <s> TOK_interface "interface"
+%token <s> TOK_long "long"
+%token <s> TOK_module "module"
+%token <s> TOK_new "new"
+%token <s> TOK_open "open"
+%token <s> TOK_opens "opens"
+%token <s> TOK_package "package"
+%token <s> TOK_permits "permits"
+%token <s> TOK_private "private"
+%token <s> TOK_protected "protected"
+%token <s> TOK_provides "provides"
+%token <s> TOK_public "public"
+%token <s> TOK_record "record"
+%token <s> TOK_requires "requires"
+%token <s> TOK_return "return"
+%token <s> TOK_sealed "sealed"
+%token <s> TOK_short "short"
+%token <s> TOK_static "static"
+%token <s> TOK_strictfp "strictfp"
+%token <s> TOK_super "super"
+%token <s> TOK_switch "switch"
+%token <s> TOK_synchronized "synchronized"
+%token <s> TOK_this "this"
+%token <s> TOK_throw "throw"
+%token <s> TOK_throws "throws"
+%token <s> TOK_to "to"
+%token <s> TOK_transient "transient"
+%token <s> TOK_transitive "transitive"
+%token <s> TOK_try "try"
+%token <s> TOK_uses "uses"
+%token <s> TOK_var "var"
+%token <s> TOK_void "void"
+%token <s> TOK_volatile "volatile"
+%token <s> TOK_while "while"
+%token <s> TOK_with "with"
+%token <s> TOK_yield "yield"
+%token <s> TOK_123 "{"
+%token <s> TOK_124 "|"
+%token <s> TOK_12461 "|="
+%token <s> TOK_124124 "||"
+%token <s> TOK_125 "}"
+%token <s> TOK_126 "~"

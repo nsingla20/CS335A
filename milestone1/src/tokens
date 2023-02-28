@@ -71,7 +71,6 @@ int
 interface
 long
 module
-native
 new
 open
 opens

@@ -37,7 +37,7 @@ int main(int argc,char **argv){
     FlexLexer* lexer = new yyFlexLexer;
     ifstream fin;
     fin.open("trygra");
-    fo.open("finalgra");
+    fo.open("finalgra_ir");
     lexer->switch_streams(fin,fo);
     lexer->yylex();
     return 0;

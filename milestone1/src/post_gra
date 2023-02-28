@@ -1,0 +1,56 @@
+
+
+/* EPILOGUE */
+
+void yyerror(char const *s){
+	printf("Error in line %d: %s\n", yylineno, s);
+}
+
+int createNode(string lbl) {
+	vector<int> v;
+	nodes.push_back({lbl, v});
+	// cout << "Node Created - " << lbl << endl;
+	return nodes.size()-1;
+}
+
+void addChild(int parent, int child) {
+	nodes[parent].second.push_back(child);
+	// cout << "Added Child - " << label[parent] << "->" << label[child] << endl;
+}
+
+void build_graph() {
+	freopen("out.dot", "w", stdout);
+	cout << "// dot -Tps out.dot -o out.ps\n\n"
+		 << "graph \"Abstract Syntax Tree\"\n"
+		 << "{\n"
+    	 << "\tfontname=\"Helvetica,Arial,sans-serif\"\n"
+    	 << "\tnode [fontsize=10, width=\".2\", height=\".2\", margin=0]\n"
+		 << "\tedge [fontsize=6]\n"
+    	 << "\tgraph[fontsize=8];\n\n"
+    	 << "\tlabel=\"Abstract Syntax Tree\"\n\n";
+
+	queue<int> nodesQueue;
+	nodesQueue.push(startNode);
+	while (!nodesQueue.empty()) {
+		int node = nodesQueue.front();
+		nodesQueue.pop();
+		cout << "\tn" << node << " ;\n";
+		cout << "\tn" << node << " [label=\"" << nodes[node].first << "\"] ;\n";
+		for (int child: nodes[node].second) {
+			cout << "\tn" << node << " -- " << 'n' << child << " ;\n";
+			nodesQueue.push(child);
+		}
+		cout << endl;
+	}
+
+	cout << "}" << endl;
+}
+
+int main(int argc, char *argv[]) {
+	yyin = fopen(argv[1], "r");
+  yydebug=1;
+	yyparse();
+	fclose(yyin);
+	build_graph();
+	return 0;
+}
