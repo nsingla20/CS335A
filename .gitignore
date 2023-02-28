@@ -1,0 +1,17 @@
+milestone1/*
+!milestone1/src
+milestone1/src/*
+!milestone1/src/run.sh
+!milestone1/src/pre_*
+!milestone1/src/post_*
+!milestone1/src/trygra
+
+!milestone1/src/my.l
+!milestone1/src/tokrep.l
+!milestone1/src/parser.l
+!milestone1/src/mygra.l
+!milestone1/src/graph_rl.l
+!milestone1/src/toktype.l
+
+!milestone1/run.sh
+!milestone1/Makefile

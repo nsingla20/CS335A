@@ -8,8 +8,7 @@ modifier.multiopt:
 | /*empty*/
 ;
 modifier:
-  annotation
-| "public"
+  "public"
 | "protected"
 | "private"
 | "abstract"
@@ -25,20 +24,14 @@ dot_ind.multiopt:
   dot_ind.multiopt '.' TOK_IDENTIFIER
 | /*empty*/
 ;
-type_IDENTIFIER:
-  TOK_IDENTIFIER
-;
-unqualified_method_IDENTIFIER:
-  TOK_IDENTIFIER
-;
 	/* Types, Values and Variables */
 type:
   primitive_type
 | reference_type
 ;
 primitive_type:
-  annotation.multiopt numeric_type
-| annotation.multiopt "boolean"
+  numeric_type
+| "boolean"
 ;
 numeric_type:
   integral_type
@@ -57,7 +50,7 @@ floating_point_type:
 ;
 reference_type:
   class_or_interface_type
-| type_variable
+| TOK_IDENTIFIER
 | array_type
 ;
 class_or_interface_type:
@@ -65,44 +58,34 @@ class_or_interface_type:
 | interface_type
 ;
 class_type:
-  annotation.multiopt type_IDENTIFIER type_arguments.opt
-| package_name '.' annotation.multiopt type_IDENTIFIER type_arguments.opt
-| class_or_interface_type '.' annotation.multiopt type_IDENTIFIER type_arguments.opt
+  TOK_IDENTIFIER type_arguments.opt
+| un_name '.' TOK_IDENTIFIER type_arguments.opt
+| class_or_interface_type '.' TOK_IDENTIFIER type_arguments.opt
 ;
 interface_type:
   class_type
 ;
-type_variable:
-  annotation.multiopt type_IDENTIFIER
-;
 array_type:
   primitive_type dims
 | class_or_interface_type dims
-| type_variable dims
+| TOK_IDENTIFIER dims
 ;
 dims:
-  annotation.multiopt '[' ']' an_sp.multiopt
+   '[' ']' an_sp.multiopt
 ;
 an_sp.multiopt:
-  an_sp.multiopt annotation.multiopt '[' ']'
+  an_sp.multiopt  '[' ']'
 | /*empty*/
 ;
 type_parameter:
-  type_parameter_modifier.multiopt type_IDENTIFIER type_bound.opt
-;
-type_parameter_modifier.multiopt:
-  type_parameter_modifier
-| type_parameter_modifier.multiopt type_parameter_modifier
-| /* empty */
-type_parameter_modifier:
-  annotation
+   TOK_IDENTIFIER type_bound.opt
 ;
 type_bound.opt:
   type_bound
 | /* empty */
 ;
 type_bound:
-   "extends"  type_variable
+   "extends"  TOK_IDENTIFIER
 |  "extends"  class_or_interface_type additional_bound.multiopt
 ;
 additional_bound:
@@ -123,7 +106,7 @@ type_argument:
 | wildcard
 ;
 wildcard:
-  annotation.multiopt '?' wildcard_bounds.opt
+   '?' wildcard_bounds.opt
 ;
 wildcard_bounds.opt:
   wildcard_bounds
@@ -135,32 +118,9 @@ wildcard_bounds:
 
 
   /* Names */
-module_name:
+un_name:
   TOK_IDENTIFIER
-| module_name '.' TOK_IDENTIFIER
-;
-package_name:
-  TOK_IDENTIFIER
-| package_name '.' TOK_IDENTIFIER
-;
-type_name:
-  type_IDENTIFIER
-| package_or_type_name '.' type_IDENTIFIER
-;
-expression_name:
-  TOK_IDENTIFIER
-| ambiguous_name '.' TOK_IDENTIFIER
-;
-method_name:
-  unqualified_method_IDENTIFIER
-;
-package_or_type_name:
-  TOK_IDENTIFIER
-| package_or_type_name '.' TOK_IDENTIFIER
-;
-ambiguous_name:
-  TOK_IDENTIFIER
-| ambiguous_name '.' TOK_IDENTIFIER
+| un_name '.' TOK_IDENTIFIER
 ;
 
 
@@ -180,14 +140,7 @@ package_declaration.opt:
 | /* empty */
 ;
 package_declaration:
-  package_modifier.multiopt  "package"  TOK_IDENTIFIER dot_ind.multiopt ';'
-;
-package_modifier.multiopt:
-  package_modifier.multiopt package_modifier
-| /* empty */
-;
-package_modifier:
-  annotation
+    "package"  TOK_IDENTIFIER dot_ind.multiopt ';'
 ;
 import_declaration.multiopt:
   import_declaration.multiopt import_declaration
@@ -200,16 +153,16 @@ import_declaration:
 | static_import_on_demand_declaration
 ;
 single_type_import_declaration:
-   "import"  type_name  ';'
+   "import"  un_name  ';'
 ;
 type_import_on_demand_declaration:
-   "import"  package_or_type_name '.' '*' ';'
+   "import"  un_name '.' '*' ';'
 ;
 single_static_import_declaration:
-   "import"  "static" type_name '.' TOK_IDENTIFIER ';'
+   "import"  "static" un_name '.' TOK_IDENTIFIER ';'
 ;
 static_import_on_demand_declaration:
-   "import"  "static" type_name '.' '*' ';'
+   "import"  "static" un_name '.' '*' ';'
 ;
 top_level_class_or_interface_declaration.multiopt:
   top_level_class_or_interface_declaration
@@ -222,7 +175,7 @@ top_level_class_or_interface_declaration:
 | ';'
 ;
 module_declaration:
-  annotation.multiopt open.opt  "module"  TOK_IDENTIFIER dot_ind.multiopt '{' module_directive.multiopt '}'
+   open.opt  "module"  TOK_IDENTIFIER dot_ind.multiopt '{' module_directive.multiopt '}'
 ;
 open.opt:
   "open"
@@ -234,22 +187,22 @@ module_directive.multiopt:
 | /* empty */
 ;
 module_directive:
-  "requires" modifier.multiopt module_name ;
-| "exports" package_name to_module_names.opt ';'
-| "opens" package_name to_module_names.opt ';'
-| "uses" type_name ';'
-| "provides" type_name "with" type_name com_type_name.multiopt ';'
+  "requires" modifier.multiopt un_name ;
+| "exports" un_name to_module_names.opt ';'
+| "opens" un_name to_module_names.opt ';'
+| "uses" un_name ';'
+| "provides" un_name "with" un_name com_type_name.multiopt ';'
 ;
 com_type_name.multiopt:
-  com_type_name.multiopt ',' type_name
+  com_type_name.multiopt ',' un_name
 | /*empty*/
 ;
 to_module_names.opt:
-  "to" module_name com_module_name.multiopt
-| to_module_names.opt "to" module_name com_module_name.multiopt
+  "to" un_name com_module_name.multiopt
+| to_module_names.opt "to" un_name com_module_name.multiopt
 | /* empty */
 com_module_name.multiopt:
-  com_module_name.multiopt ',' module_name
+  com_module_name.multiopt ',' un_name
 | /*empty*/
 ;
 
@@ -260,7 +213,7 @@ class_declaration:
 | record_declaration
 ;
 normal_class_declaration:
-  modifier.multiopt  "class"  type_IDENTIFIER  type_parameters.opt class_extends.opt class_implements.opt class_permits.opt class_body
+  modifier.multiopt  "class"  TOK_IDENTIFIER  type_parameters.opt class_extends.opt class_implements.opt class_permits.opt class_body
 ;
 type_parameters.opt:
   type_parameters
@@ -302,7 +255,7 @@ com_interface_type.multiopt:
 | /*empty*/
 ;
 class_permits:
-  "permits" type_name com_type_name.multiopt
+  "permits" un_name com_type_name.multiopt
 ;
 class_body:
    '{'  class_body_declaration.multiopt  '}'
@@ -324,7 +277,7 @@ class_member_declaration:
 | interface_declaration
 ;
 field_declaration:
-  modifier.multiopt unann_type variable_declarator_list ';'
+  modifier.multiopt type variable_declarator_list ';'
 ;
 variable_declarator_list:
   variable_declarator com_variable_declarator.multiopt
@@ -351,60 +304,27 @@ variable_initializer:
   expression
 | array_initializer
 ;
-unann_type:
-  unann_primitive_type
-| unann_reference_type
-;
-unann_primitive_type:
-  numeric_type
-| "boolean"
-;
-unann_reference_type:
-  unann_class_or_interface_type
-| unann_type_variable
-| unann_array_type
-;
-unann_class_or_interface_type:
-  unann_class_type
-| unann_interface_type
-;
-unann_class_type:
-  type_IDENTIFIER type_arguments.opt
-| package_name '.' annotation.multiopt type_IDENTIFIER type_arguments.opt
-| unann_class_or_interface_type '.' annotation.multiopt type_IDENTIFIER type_arguments.opt
-;
 type_arguments.opt:
   type_arguments
 | /*empty*/
-;
-unann_interface_type:
-  unann_class_type
-;
-unann_type_variable:
-  type_IDENTIFIER
-;
-unann_array_type:
-  unann_primitive_type dims
-| unann_class_or_interface_type dims
-| unann_type_variable dims
 ;
 method_declaration:
   modifier.multiopt method_header method_body
 ;
 method_header:
   result method_declarator throws.opt
-| type_parameters annotation.multiopt result method_declarator throws.opt
+| type_parameters  result method_declarator throws.opt
 ;
 throws.opt:
   throws
 | /*empty*/
 ;
 result:
-  unann_type
+  type
 | "void"
 ;
 method_declarator:
-  TOK_IDENTIFIER '(' receiver_parameter_com.opt formal_parameter_list.opt ')' dims.opt
+  TOK_IDENTIFIER '(' formal_parameter_list.opt ')' dims.opt
 ;
 receiver_parameter_com.opt:
   receiver_parameter ','
@@ -415,7 +335,7 @@ formal_parameter_list.opt:
 | /*empty*/
 ;
 receiver_parameter:
-  annotation.multiopt unann_type IDENTIFIER_dot.opt "this"
+   type IDENTIFIER_dot.opt "this"
 ;
 IDENTIFIER_dot.opt:
   TOK_IDENTIFIER '.'
@@ -429,7 +349,7 @@ com_formal_parameter.multiopt:
 | /*empty*/
 ;
 formal_parameter:
-  variable_modifier.multiopt unann_type variable_declarator_id
+  variable_modifier.multiopt type variable_declarator_id
 | variable_arity_parameter
 ;
 variable_modifier.multiopt:
@@ -437,11 +357,10 @@ variable_modifier.multiopt:
 | /*empty*/
 ;
 variable_arity_parameter:
-  variable_modifier.multiopt unann_type annotation.multiopt "..." TOK_IDENTIFIER
+  variable_modifier.multiopt type  "..." TOK_IDENTIFIER
 ;
 variable_modifier:
-  annotation
-| "final"
+ "final"
 ;
 throws:
   "throws" exception_type_list
@@ -455,7 +374,7 @@ com_exception_type.multiopt:
 ;
 exception_type:
   class_type
-| type_variable
+| TOK_IDENTIFIER
 ;
 method_body:
   block
@@ -474,7 +393,7 @@ constructor_declarator:
   type_parameters.opt simple_type_name '(' receiver_parameter_com.opt formal_parameter_list.opt ')'
 ;
 simple_type_name:
-  type_IDENTIFIER
+  TOK_IDENTIFIER
 ;
 constructor_body:
   '{' explicit_constructor_invocation.opt block_statements.opt '}'
@@ -490,7 +409,7 @@ block_statements.opt:
 explicit_constructor_invocation:
   type_arguments.opt "this" '(' argument_list.opt ')' ';'
 | type_arguments.opt "super" '(' argument_list.opt ')' ';'
-| expression_name '.' type_arguments.opt "super" '(' argument_list.opt ')' ';'
+| un_name '.' type_arguments.opt "super" '(' argument_list.opt ')' ';'
 | primary '.' type_arguments.opt "super" '(' argument_list.opt ')' ';'
 ;
 argument_list.opt:
@@ -498,7 +417,7 @@ argument_list.opt:
 | /*empty*/
 ;
 enum_declaration:
-  modifier.multiopt "enum" type_IDENTIFIER class_implements.opt enum_body
+  modifier.multiopt "enum" TOK_IDENTIFIER class_implements.opt enum_body
 ;
 enum_body:
   '{' enum_constant_list.opt com.opt enum_body_declarations.opt '}'
@@ -523,24 +442,19 @@ com_enum_constant.multiopt:
 | /*empty*/
 ;
 enum_constant:
-  enum_modifier.multiopt TOK_IDENTIFIER '[' '(' argument_list.opt ')' ']' class_body.opt
+   TOK_IDENTIFIER '[' '(' argument_list.opt ')' ']' class_body.opt
 ;
-enum_modifier.multiopt:
-  enum_modifier.multiopt enum_modifier
-| /*empty*/
-;
+
 class_body.opt:
   class_body
 | /*empty*/
 ;
-enum_modifier:
-  annotation
-;
+
 enum_body_declarations:
   ';' class_body_declaration.multiopt
 ;
 record_declaration:
-  modifier.multiopt "record" type_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body
+  modifier.multiopt "record" TOK_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body
 ;
 record_header:
   '(' record_component_list.opt ')'
@@ -558,18 +472,12 @@ com_record_component.multiopt:
 ;
 
 record_component:
-  record_component_modifier.multiopt unann_type TOK_IDENTIFIER
+  type TOK_IDENTIFIER
 | variable_arity_record_component
 ;
-record_component_modifier.multiopt:
-  record_component_modifier.multiopt record_component_modifier
-| /*empty*/
-;
+
 variable_arity_record_component:
-  record_component_modifier.multiopt unann_type annotation.multiopt "..." TOK_IDENTIFIER
-;
-record_component_modifier:
-  annotation
+  type  "..." TOK_IDENTIFIER
 ;
 record_body:
   '{' record_body_declaration.multiopt '}'
@@ -590,10 +498,9 @@ compact_constructor_declaration:
 
 interface_declaration:
   normal_interface_declaration
-| annotation_interface_declaration
 ;
 normal_interface_declaration:
-  modifier.multiopt "interface" type_IDENTIFIER type_parameters.opt interface_extends.opt interface_permits.opt interface_body
+  modifier.multiopt "interface" TOK_IDENTIFIER type_parameters.opt interface_extends.opt interface_permits.opt interface_body
 ;
 interface_extends.opt:
   interface_extends
@@ -607,7 +514,7 @@ interface_extends:
   "extends" interface_type_list
 ;
 interface_permits:
-  "permits" type_name com_type_name.multiopt
+  "permits" un_name com_type_name.multiopt
 ;
 interface_body:
   '{' interface_member_declaration.multiopt '}'
@@ -624,30 +531,10 @@ interface_member_declaration:
 | ';'
 ;
 constant_declaration:
-  modifier.multiopt unann_type variable_declarator_list ';'
+  modifier.multiopt type variable_declarator_list ';'
 ;
 interface_method_declaration:
   modifier.multiopt method_header method_body
-;
-annotation_interface_declaration:
-  modifier.multiopt '@' "interface" type_IDENTIFIER annotation_interface_body
-;
-annotation_interface_body:
-  '{' annotation_interface_member_declaration.multiopt '}'
-;
-annotation_interface_member_declaration.multiopt:
-  annotation_interface_member_declaration.multiopt annotation_interface_member_declaration
-| /*empty*/
-;
-annotation_interface_member_declaration:
-  annotation_interface_element_declaration
-| constant_declaration
-| class_declaration
-| interface_declaration
-| ';'
-;
-annotation_interface_element_declaration:
-  modifier.multiopt unann_type TOK_IDENTIFIER '(' ')' dims.opt default_value.opt ';'
 ;
 default_value.opt:
   default_value
@@ -655,14 +542,6 @@ default_value.opt:
 ;
 default_value:
   "default" element_value
-;
-annotation:
-  normal_annotation
-| marker_annotation
-| single_element_annotation
-;
-normal_annotation:
-  '@' type_name '(' element_value_pair_list.opt ')'
 ;
 element_value_pair_list.opt:
   element_value_pair_list
@@ -681,7 +560,6 @@ element_value_pair:
 element_value:
   conditional_expression
 | element_value_array_initializer
-| annotation
 ;
 element_value_array_initializer:
   '{' element_valueList.opt com.opt '}'
@@ -697,15 +575,7 @@ com_element_value.multiopt:
   com_element_value.multiopt ',' element_value
 | /*empty*/
 ;
-marker_annotation:
-  '@' type_name
-;
-single_element_annotation:
-  '@' type_name '(' element_value ')'
-;
-annotation.multiopt:
-  annotation.multiopt annotation
-| /*empty*/
+
 	/* Arrays */
 
 array_initializer:
@@ -750,7 +620,7 @@ local_variable_declaration:
   variable_modifier.multiopt local_variable_type variable_declarator_list
 ;
 local_variable_type:
-  unann_type
+  type
 | "var"
 ;
 statement:
@@ -955,7 +825,7 @@ catch_formal_parameter:
   variable_modifier.multiopt catch_type variable_declarator_id
 ;
 catch_type:
-  unann_class_type vt_class_type.multiopt
+  class_type vt_class_type.multiopt
 ;
 vt_class_type.multiopt:
   vt_class_type.multiopt '|' class_type
@@ -990,7 +860,7 @@ resource:
 | variable_access
 ;
 variable_access:
-  expression_name
+  un_name
 | field_access
 ;
 pattern:
@@ -1007,9 +877,8 @@ primary:
 ;
 primary_no_new_array:
   TOK_LITERAL
-| class_literal
 | "this"
-| type_name '.' "this"
+| un_name '.' "this"
 | '(' expression ')'
 | class_instance_creation_expression
 | field_access
@@ -1018,7 +887,7 @@ primary_no_new_array:
 | method_reference
 ;
 class_literal:
-  type_name dm.multiopt '.' "class"
+  un_name dm.multiopt '.' "class"
 | numeric_type dm.multiopt '.' "class"
 | "boolean" dm.multiopt "." "class"
 | "void" "." "class"
@@ -1029,17 +898,17 @@ dm.multiopt:
 ;
 class_instance_creation_expression:
   unqualified_class_instance_creation_expression
-| expression_name '.' unqualified_class_instance_creation_expression
+| un_name '.' unqualified_class_instance_creation_expression
 | primary '.' unqualified_class_instance_creation_expression
 ;
 unqualified_class_instance_creation_expression:
   "new" type_arguments.opt class_or_interface_type_to_instantiate '(' argument_list.opt ')' class_body.opt
 ;
 class_or_interface_type_to_instantiate:
-  annotation.multiopt TOK_IDENTIFIER dot_annotation.multiopt_IDENTIFIER.multiopt type_arguments_or_diamond.opt
+   TOK_IDENTIFIER dot__IDENTIFIER.multiopt type_arguments_or_diamond.opt
 ;
-dot_annotation.multiopt_IDENTIFIER.multiopt:
-  dot_annotation.multiopt_IDENTIFIER.multiopt '.' annotation.multiopt TOK_IDENTIFIER
+dot__IDENTIFIER.multiopt:
+  dot__IDENTIFIER.multiopt '.'  TOK_IDENTIFIER
 | /*empty*/
 ;
 type_arguments_or_diamond.opt:
@@ -1052,19 +921,19 @@ type_arguments_or_diamond:
 field_access:
   primary '.' TOK_IDENTIFIER
 | "super" '.' TOK_IDENTIFIER
-| type_name '.' "super" '.' TOK_IDENTIFIER
+| un_name '.' "super" '.' TOK_IDENTIFIER
 ;
 array_access:
-  expression_name '[' expression ']'
+  un_name '[' expression ']'
 | primary_no_new_array '[' expression ']'
 ;
 method_invocation:
-  method_name '(' argument_list.opt ')'
-| type_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
-| expression_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
+  un_name '(' argument_list.opt ')'
+| un_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
+| un_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
 | primary '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
 | "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
-| type_name '.' "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
+| un_name '.' "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
 ;
 argument_list:
   expression com_expression.multiopt
@@ -1074,11 +943,11 @@ com_expression.multiopt:
 | /*empty*/
 ;
 method_reference:
-  expression_name "::" type_arguments.opt TOK_IDENTIFIER
+  un_name "::" type_arguments.opt TOK_IDENTIFIER
 | primary "::" type_arguments.opt TOK_IDENTIFIER
 | reference_type "::" type_arguments.opt TOK_IDENTIFIER
 | "super" "::" type_arguments.opt TOK_IDENTIFIER
-| type_name '.' "super" "::" type_arguments.opt TOK_IDENTIFIER
+| un_name '.' "super" "::" type_arguments.opt TOK_IDENTIFIER
 | class_type "::" type_arguments.opt "new"
 | array_type "::" "new"
 ;
@@ -1096,46 +965,14 @@ dim_expr.multiopt:
 | /*empty*/
 ;
 dim_expr:
-  annotation.multiopt '[' expression ']'
+   '[' expression ']'
 ;
 expression:
-  lambda_expression
-| assignment_expression
-;
-lambda_expression:
-  lambda_parameters "->" lambda_body
-;
-lambda_parameters:
-  '(' lambda_parameter_list.opt ')'
-| TOK_IDENTIFIER
-;
-lambda_parameter_list.opt:
-  lambda_parameter_list
-| /*empty*/
-;
-lambda_parameter_list:
-  lambda_parameter com_lambda_parameter.multiopt
-| TOK_IDENTIFIER com_IDENTIFIER.multiopt
+  assignment_expression
 ;
 com_IDENTIFIER.multiopt:
   com_IDENTIFIER.multiopt ',' TOK_IDENTIFIER
 | /*empty*/
-;
-com_lambda_parameter.multiopt:
-  com_lambda_parameter.multiopt ',' lambda_parameter
-| /*empty*/
-;
-lambda_parameter:
-  variable_modifier.multiopt lambda_parameter_type variable_declarator_id
-| variable_arity_parameter
-;
-lambda_parameter_type:
-  unann_type
-| "var"
-;
-lambda_body:
-  expression
-| block
 ;
 assignment_expression:
   conditional_expression
@@ -1145,7 +982,7 @@ assignment:
   left_hand_side assignment_operator expression
 ;
 left_hand_side:
-  expression_name
+  un_name
 | field_access
 | array_access
 ;
@@ -1166,7 +1003,6 @@ assignment_operator:
 conditional_expression:
   conditional_or_expression
 | conditional_or_expression "?" expression ':' conditional_expression
-| conditional_or_expression "?" expression ":" lambda_expression
 ;
 conditional_or_expression:
   conditional_and_expression
@@ -1242,7 +1078,7 @@ unary_expression_not_plus_minus:
 ;
 postfix_expression:
   primary
-| expression_name
+| un_name
 | post_increment_expression
 | post_decrement_expression
 ;
@@ -1255,7 +1091,6 @@ post_decrement_expression:
 cast_expression:
   '(' primitive_type ')' unary_expression
 | '(' reference_type additional_bound.multiopt ')' unary_expression_not_plus_minus
-| '(' reference_type additional_bound.multiopt ')' lambda_expression
 ;
 additional_bound.multiopt:
   additional_bound.multiopt additional_bound
