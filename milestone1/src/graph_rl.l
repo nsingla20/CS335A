@@ -45,6 +45,9 @@ terminal [A-Za-z_.]+
         t="";
     }
     fo<<"{$$=createNode(\""<<curr<<"\");";
+    if(curr=="input"){
+        fo<<"startNode=$$;";
+    }
     for(int i=0;i<v.size();i++){
         if(v[i][0]=='T'){
             fo<<"addChild($$,createNode($"<<i+1<<"));";
