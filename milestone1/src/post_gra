@@ -6,9 +6,21 @@ void yyerror(char const *s){
 	printf("Error in line %d: %s\n", yylineno, s);
 }
 
+string replace_quotes(string s) {
+	string res = "";
+	for (char c: s) {
+		if (c == '"') {
+			res += "\\\"";
+		} else {
+			res += c;
+		}
+	}
+	return res;
+}
+
 int createNode(string lbl) {
 	vector<int> v;
-	nodes.push_back({lbl, v});
+	nodes.push_back({replace_quotes(lbl), v});
 	// cout << "Node Created - " << lbl << endl;
 	return nodes.size()-1;
 }
@@ -58,7 +70,6 @@ void build_graph() {
 		int node = nodesQueue.front();
 		nodesQueue.pop();
 		cout << "\tn" << node << " ;\n";
-		if(nodes[node].second.size()==0)nodes[node].first = "\\\""+nodes[node].first+"\\\"";
 		cout << "\tn" << node << " [label=\"" << nodes[node].first << "\"] ;\n";
 		for (int child: nodes[node].second) {
 			cout << "\tn" << node << " -- " << 'n' << child << " ;\n";
