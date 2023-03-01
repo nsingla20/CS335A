@@ -229,9 +229,6 @@ class_member_declaration:
 | class_declaration
 | interface_declaration
 ;
-field_declaration:
-  type variable_declarator_list ';'
-;
 variable_declarator_list:
   variable_declarator com_variable_declarator.multiopt
 ;
@@ -279,19 +276,8 @@ result:
 method_declarator:
   TOK_IDENTIFIER '(' formal_parameter_list.opt ')' dims.opt
 ;
-receiver_parameter_com.opt:
-  receiver_parameter ','
-| /*empty*/
-;
 formal_parameter_list.opt:
   formal_parameter_list
-| /*empty*/
-;
-receiver_parameter:
-   type IDENTIFIER_dot.opt "this"
-;
-IDENTIFIER_dot.opt:
-  TOK_IDENTIFIER '.'
 | /*empty*/
 ;
 formal_parameter_list:
