@@ -8,12 +8,14 @@ void yyerror(char const *s){
 
 string replace_quotes(string s) {
 	string res = "";
+	char prev = ' ';
 	for (char c: s) {
-		if (c == '"') {
+		if (c == '"' && prev != '\\') {
 			res += "\\\"";
 		} else {
 			res += c;
 		}
+		prev = c;
 	}
 	return res;
 }
