@@ -6,8 +6,8 @@ CC	= g++
 javacompiler:	$(OBJS)
 		$(CC) $(OBJS) -o javacompiler
 
-$(prefix)/lex.yy.c:	$(prefix)/prob2.l $(prefix)/parser.tab.h
-		flex -o ${prefix}/lex.yy.c $(prefix)/prob2.l
+$(prefix)/lex.yy.c:	$(prefix)/scanner.l $(prefix)/parser.tab.h
+		flex -o ${prefix}/lex.yy.c $(prefix)/scanner.l
 
 
 $(prefix)/parser.tab.c $(prefix)/parser.tab.h:	$(prefix)/parser.y
