@@ -442,8 +442,7 @@ interface_member_declaration.multiopt:
 | /*empty*/
 ;
 interface_member_declaration:
-  constant_declaration
-| interface_method_declaration
+  interface_method_declaration
 | class_declaration
 | interface_declaration
 | ';'
@@ -785,10 +784,10 @@ array_access:
 ;
 method_invocation:
   un_name '(' argument_list.opt ')'
-| un_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
-| primary '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
-| "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
-| un_name '.' "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
+| un_name '.'  TOK_IDENTIFIER '(' argument_list.opt ')'
+| primary '.' TOK_IDENTIFIER '(' argument_list.opt ')'
+| "super" '.'  TOK_IDENTIFIER '(' argument_list.opt ')'
+| un_name '.' "super" '.' TOK_IDENTIFIER '(' argument_list.opt ')'
 ;
 argument_list:
   expression com_expression.multiopt

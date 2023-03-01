@@ -1,7 +1,7 @@
-// Generic 
+// Generic
 class Test<T> {
-	T obj;
 	
+
 }
 class Main {
 	public static void main(String[] args)
