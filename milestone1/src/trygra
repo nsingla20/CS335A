@@ -59,7 +59,6 @@ class_or_interface_type:
 ;
 array_type:
   class_or_interface_type dims
-| TOK_IDENTIFIER dims
 ;
 dims:
   '[' ']'
