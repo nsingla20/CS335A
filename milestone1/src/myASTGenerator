@@ -3,7 +3,7 @@ args=("$@")
 ELEMENTS=${#args[@]}
 
 input=""
-output=""
+output="default.dot"
 flag=0;
 verbose=0;
 
@@ -30,6 +30,7 @@ done
 
 if [ $flag == 0 ];then
     echo "Please enter input file or use -help to know syntax"
+    exit
 fi
 if [ $verbose == 1 ];then
     cat parser.output
