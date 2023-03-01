@@ -17,3 +17,5 @@ milestone1/src/*
 
 !milestone1/run.sh
 !milestone1/Makefile
+!milestone1/src/Makefile
+!milestone1/src/myASTGenerator
