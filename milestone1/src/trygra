@@ -225,9 +225,13 @@ class_body_declaration:
 | constructor_declaration
 ;
 class_member_declaration:
-  method_declaration
+  field_declaration
+| method_declaration
 | class_declaration
 | interface_declaration
+;
+field_declaration:
+  type variable_declarator_list ';'
 ;
 variable_declarator_list:
   variable_declarator com_variable_declarator.multiopt
@@ -506,7 +510,7 @@ local_variable_declaration_statement:
   local_variable_declaration ';'
 ;
 local_variable_declaration:
-  local_variable_modifier local_variable_type variable_declarator_list
+  local_variable_type variable_declarator_list
 ;
 local_variable_modifier:
   "final"
