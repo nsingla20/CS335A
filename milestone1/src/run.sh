@@ -23,4 +23,4 @@ cat finalgra >> parser.y
 echo "%%" >> parser.y
 cat post_gra >>parser.y
 
-cat pre_scan tokenrep post_scan > prob2.l
+cat pre_scan tokenrep post_scan > scanner.l
