@@ -18,6 +18,29 @@ void addChild(int parent, int child) {
 	// cout << "Added Child - " << label[parent] << "->" << label[child] << endl;
 }
 
+int get_leaf_or_multi_child_node(int node) {
+	if (nodes[node].second.size() == 1) {
+		return get_leaf_or_multi_child_node(nodes[node].second[0]);
+	}
+	return node;
+}
+
+void fix_ast(int node) {
+	// if child node has only one child remove the child node and add the child of child node to parent node
+	for (int i = 0; i < nodes[node].second.size(); i++) {
+		int child = nodes[node].second[i];
+		fix_ast(child);
+		int final_child = get_leaf_or_multi_child_node(child);
+		if (final_child != child) {
+			// if (nodes[final_child].second.size() != 0) {
+			// 	nodes[final_child].first = nodes[child].first;
+			// }
+			nodes[node].second[i] = final_child;
+			// cout << "----Fixed AST - " << nodes[node].first << "->" << nodes[child].first << " to " << nodes[node].first << "->" << nodes[final_child].first << endl;
+		}
+	}
+}
+
 void build_graph() {
 	freopen("out.dot", "w", stdout);
 	cout << "// dot -Tps out.dot -o out.ps\n\n"
@@ -52,6 +75,7 @@ int main(int argc, char *argv[]) {
 //   yydebug=1;
 	yyparse();
 	fclose(yyin);
+	fix_ast(startNode);
 	build_graph();
 	return 0;
 }
