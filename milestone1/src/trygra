@@ -54,28 +54,16 @@ reference_type:
 | array_type
 ;
 class_or_interface_type:
-  class_type
-| interface_type
-;
-class_type:
   TOK_IDENTIFIER type_arguments.opt
-| un_name '.' TOK_IDENTIFIER type_arguments.opt
 | class_or_interface_type '.' TOK_IDENTIFIER type_arguments.opt
 ;
-interface_type:
-  class_type
-;
 array_type:
-  primitive_type dims
-| class_or_interface_type dims
+  class_or_interface_type dims
 | TOK_IDENTIFIER dims
 ;
 dims:
-   '[' ']' an_sp.multiopt
-;
-an_sp.multiopt:
-  an_sp.multiopt  '[' ']'
-| /*empty*/
+  '[' ']'
+| dims '[' ']'
 ;
 type_parameter:
    TOK_IDENTIFIER type_bound.opt
@@ -89,7 +77,7 @@ type_bound:
 |  "extends"  class_or_interface_type additional_bound.multiopt
 ;
 additional_bound:
-  '&' interface_type
+  '&' class_or_interface_type
 ;
 type_arguments:
   '<' type_argument_list '>'
@@ -127,13 +115,9 @@ un_name:
   /* Packages and Modules */
 compilation_unit:
   ordinary_compilation_unit
-| modular_compilation_unit
 ;
 ordinary_compilation_unit:
   package_declaration.opt import_declaration.multiopt top_level_class_or_interface_declaration.multiopt
-;
-modular_compilation_unit:
-  import_declaration.multiopt module_declaration
 ;
 package_declaration.opt:
   package_declaration
@@ -165,8 +149,7 @@ static_import_on_demand_declaration:
    "import"  "static" un_name '.' '*' ';'
 ;
 top_level_class_or_interface_declaration.multiopt:
-  top_level_class_or_interface_declaration
-| top_level_class_or_interface_declaration.multiopt top_level_class_or_interface_declaration
+  top_level_class_or_interface_declaration.multiopt top_level_class_or_interface_declaration
 | /* empty */
 ;
 top_level_class_or_interface_declaration:
@@ -174,35 +157,8 @@ top_level_class_or_interface_declaration:
 | interface_declaration
 | ';'
 ;
-module_declaration:
-   open.opt  "module"  TOK_IDENTIFIER dot_ind.multiopt '{' module_directive.multiopt '}'
-;
-open.opt:
-  "open"
-| /*empty*/
-;
-module_directive.multiopt:
-  module_directive
-| module_directive.multiopt module_directive
-| /* empty */
-;
-module_directive:
-  "requires" modifier.multiopt un_name ;
-| "exports" un_name to_module_names.opt ';'
-| "opens" un_name to_module_names.opt ';'
-| "uses" un_name ';'
-| "provides" un_name "with" un_name com_type_name.multiopt ';'
-;
 com_type_name.multiopt:
   com_type_name.multiopt ',' un_name
-| /*empty*/
-;
-to_module_names.opt:
-  "to" un_name com_module_name.multiopt
-| to_module_names.opt "to" un_name com_module_name.multiopt
-| /* empty */
-com_module_name.multiopt:
-  com_module_name.multiopt ',' un_name
 | /*empty*/
 ;
 
@@ -242,16 +198,16 @@ com_type_parameter.multiopt:
 | /*empty*/
 ;
 class_extends:
-  "extends" class_type
+  "extends" class_or_interface_type
 ;
 class_implements:
   "implements" interface_type_list
 ;
 interface_type_list:
-  interface_type com_interface_type.multiopt
+  class_or_interface_type com_interface_type.multiopt
 ;
 com_interface_type.multiopt:
-  com_interface_type.multiopt ',' interface_type
+  com_interface_type.multiopt ',' class_or_interface_type
 | /*empty*/
 ;
 class_permits:
@@ -267,7 +223,6 @@ class_body_declaration.multiopt:
 class_body_declaration:
   class_member_declaration
 | instance_initializer
-| static_initializer
 | constructor_declaration
 ;
 class_member_declaration:
@@ -349,18 +304,11 @@ com_formal_parameter.multiopt:
 | /*empty*/
 ;
 formal_parameter:
-  variable_modifier.multiopt type variable_declarator_id
+  modifier.multiopt type variable_declarator_id
 | variable_arity_parameter
 ;
-variable_modifier.multiopt:
-  variable_modifier.multiopt variable_modifier
-| /*empty*/
-;
 variable_arity_parameter:
-  variable_modifier.multiopt type  "..." TOK_IDENTIFIER
-;
-variable_modifier:
- "final"
+  modifier.multiopt type  "..." TOK_IDENTIFIER
 ;
 throws:
   "throws" exception_type_list
@@ -373,8 +321,7 @@ com_exception_type.multiopt:
 | /*empty*/
 ;
 exception_type:
-  class_type
-| TOK_IDENTIFIER
+  class_or_interface_type
 ;
 method_body:
   block
@@ -382,9 +329,6 @@ method_body:
 ;
 instance_initializer:
   block
-;
-static_initializer:
-  "static" block
 ;
 constructor_declaration:
   modifier.multiopt constructor_declarator throws.opt constructor_body
@@ -536,45 +480,6 @@ constant_declaration:
 interface_method_declaration:
   modifier.multiopt method_header method_body
 ;
-default_value.opt:
-  default_value
-| /*empty*/
-;
-default_value:
-  "default" element_value
-;
-element_value_pair_list.opt:
-  element_value_pair_list
-| /*empty*/
-;
-element_value_pair_list:
-  element_value_pair com_element_value_pair.multiopt
-;
-com_element_value_pair.multiopt:
-  com_element_value_pair.multiopt ',' element_value_pair
-| /*empty*/
-;
-element_value_pair:
-  TOK_IDENTIFIER '=' element_value
-;
-element_value:
-  conditional_expression
-| element_value_array_initializer
-;
-element_value_array_initializer:
-  '{' element_valueList.opt com.opt '}'
-;
-element_valueList.opt:
-  element_valueList
-| /*empty*/
-;
-element_valueList:
-  element_value com_element_value.multiopt
-;
-com_element_value.multiopt:
-  com_element_value.multiopt ',' element_value
-| /*empty*/
-;
 
 	/* Arrays */
 
@@ -617,7 +522,7 @@ local_variable_declaration_statement:
   local_variable_declaration ';'
 ;
 local_variable_declaration:
-  variable_modifier.multiopt local_variable_type variable_declarator_list
+  modifier.multiopt local_variable_type variable_declarator_list
 ;
 local_variable_type:
   type
@@ -822,13 +727,13 @@ catch_clause:
   "catch" '(' catch_formal_parameter ')' block
 ;
 catch_formal_parameter:
-  variable_modifier.multiopt catch_type variable_declarator_id
+  modifier.multiopt catch_type variable_declarator_id
 ;
 catch_type:
-  class_type vt_class_type.multiopt
+  class_or_interface_type vt_class_type.multiopt
 ;
 vt_class_type.multiopt:
-  vt_class_type.multiopt '|' class_type
+  vt_class_type.multiopt '|' class_or_interface_type
 | /*empty*/
 ;
 finally:
@@ -886,16 +791,7 @@ primary_no_new_array:
 | method_invocation
 | method_reference
 ;
-class_literal:
-  un_name dm.multiopt '.' "class"
-| numeric_type dm.multiopt '.' "class"
-| "boolean" dm.multiopt "." "class"
-| "void" "." "class"
-;
-dm.multiopt:
-  dm.multiopt '[' ']'
-| /*empty*/
-;
+
 class_instance_creation_expression:
   unqualified_class_instance_creation_expression
 | un_name '.' unqualified_class_instance_creation_expression
@@ -905,11 +801,7 @@ unqualified_class_instance_creation_expression:
   "new" type_arguments.opt class_or_interface_type_to_instantiate '(' argument_list.opt ')' class_body.opt
 ;
 class_or_interface_type_to_instantiate:
-   TOK_IDENTIFIER dot__IDENTIFIER.multiopt type_arguments_or_diamond.opt
-;
-dot__IDENTIFIER.multiopt:
-  dot__IDENTIFIER.multiopt '.'  TOK_IDENTIFIER
-| /*empty*/
+   un_name type_arguments_or_diamond.opt
 ;
 type_arguments_or_diamond.opt:
   type_arguments_or_diamond
@@ -930,7 +822,6 @@ array_access:
 method_invocation:
   un_name '(' argument_list.opt ')'
 | un_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
-| un_name '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
 | primary '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
 | "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
 | un_name '.' "super" '.' type_arguments.opt TOK_IDENTIFIER '(' argument_list.opt ')'
@@ -945,11 +836,8 @@ com_expression.multiopt:
 method_reference:
   un_name "::" type_arguments.opt TOK_IDENTIFIER
 | primary "::" type_arguments.opt TOK_IDENTIFIER
-| reference_type "::" type_arguments.opt TOK_IDENTIFIER
 | "super" "::" type_arguments.opt TOK_IDENTIFIER
 | un_name '.' "super" "::" type_arguments.opt TOK_IDENTIFIER
-| class_type "::" type_arguments.opt "new"
-| array_type "::" "new"
 ;
 array_creation_expression:
   "new" primitive_type dim_exprs dims.opt
@@ -969,10 +857,6 @@ dim_expr:
 ;
 expression:
   assignment_expression
-;
-com_IDENTIFIER.multiopt:
-  com_IDENTIFIER.multiopt ',' TOK_IDENTIFIER
-| /*empty*/
 ;
 assignment_expression:
   conditional_expression
@@ -1098,8 +982,5 @@ additional_bound.multiopt:
 ;
 switch_expression:
   "switch" '(' expression ')' switch_block
-;
-constant_expression:
-  expression
 ;
 
