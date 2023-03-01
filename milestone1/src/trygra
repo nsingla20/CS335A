@@ -225,8 +225,7 @@ class_body_declaration:
 | constructor_declaration
 ;
 class_member_declaration:
-  field_declaration
-| method_declaration
+  method_declaration
 | class_declaration
 | interface_declaration
 ;
@@ -333,7 +332,7 @@ constructor_declaration:
   modifier.multiopt constructor_declarator throws.opt constructor_body
 ;
 constructor_declarator:
-  type_parameters.opt simple_type_name '(' receiver_parameter_com.opt formal_parameter_list.opt ')'
+  simple_type_name '(' formal_parameter_list.opt ')'
 ;
 simple_type_name:
   TOK_IDENTIFIER
@@ -499,7 +498,8 @@ block_statement.multiopt:
 | /*empty*/
 ;
 block_statement:
-  local_variable_declaration_statement
+  local_class_or_interface_declaration
+|  local_variable_declaration_statement
 | statement
 ;
 local_class_or_interface_declaration:
@@ -787,17 +787,6 @@ class_instance_creation_expression:
 ;
 unqualified_class_instance_creation_expression:
   "new" class_or_interface_type '(' argument_list.opt ')' class_body.opt
-;
-class_or_interface_type_to_instantiate:
-   un_name type_arguments_or_diamond.opt
-;
-type_arguments_or_diamond.opt:
-  type_arguments_or_diamond
-| /*empty*/
-;
-type_arguments_or_diamond:
-  '<' '>'
-| type_arguments
 ;
 field_access:
   primary '.' TOK_IDENTIFIER
