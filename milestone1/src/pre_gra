@@ -31,7 +31,6 @@ int yylex (YYSTYPE*);
 %verbose
 %define parse.trace
 %define api.pure
-
 %token <s> TOK_IDENTIFIER
 %token <s> TOK_LITERAL
 

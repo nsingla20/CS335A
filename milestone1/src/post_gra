@@ -35,6 +35,7 @@ void build_graph() {
 		int node = nodesQueue.front();
 		nodesQueue.pop();
 		cout << "\tn" << node << " ;\n";
+		if(nodes[node].second.size()==0)nodes[node].first = "\\\""+nodes[node].first+"\\\"";
 		cout << "\tn" << node << " [label=\"" << nodes[node].first << "\"] ;\n";
 		for (int child: nodes[node].second) {
 			cout << "\tn" << node << " -- " << 'n' << child << " ;\n";
@@ -48,7 +49,7 @@ void build_graph() {
 
 int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");
-  yydebug=1;
+//   yydebug=1;
 	yyparse();
 	fclose(yyin);
 	build_graph();

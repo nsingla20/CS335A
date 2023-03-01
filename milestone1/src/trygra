@@ -50,7 +50,6 @@ floating_point_type:
 ;
 reference_type:
   class_or_interface_type
-| TOK_IDENTIFIER
 | array_type
 ;
 class_or_interface_type:
@@ -73,8 +72,7 @@ type_bound.opt:
 | /* empty */
 ;
 type_bound:
-   "extends"  TOK_IDENTIFIER
-|  "extends"  class_or_interface_type additional_bound.multiopt
+  "extends"  class_or_interface_type additional_bound.multiopt
 ;
 additional_bound:
   '&' class_or_interface_type
@@ -83,7 +81,7 @@ type_arguments:
   '<' type_argument_list '>'
 ;
 type_argument_list:
-  type_argument type_argument.multiopt
+  type_argument.multiopt type_argument
 ;
 type_argument.multiopt:
   ',' type_argument
@@ -340,21 +338,11 @@ simple_type_name:
   TOK_IDENTIFIER
 ;
 constructor_body:
-  '{' explicit_constructor_invocation.opt block_statements.opt '}'
-;
-explicit_constructor_invocation.opt:
-  explicit_constructor_invocation
-| /*empty*/
+  '{' block_statements.opt '}'
 ;
 block_statements.opt:
   block_statements
 | /*empty*/
-;
-explicit_constructor_invocation:
-  type_arguments.opt "this" '(' argument_list.opt ')' ';'
-| type_arguments.opt "super" '(' argument_list.opt ')' ';'
-| un_name '.' type_arguments.opt "super" '(' argument_list.opt ')' ';'
-| primary '.' type_arguments.opt "super" '(' argument_list.opt ')' ';'
 ;
 argument_list.opt:
   argument_list
@@ -974,7 +962,6 @@ post_decrement_expression:
 ;
 cast_expression:
   '(' primitive_type ')' unary_expression
-| '(' reference_type additional_bound.multiopt ')' unary_expression_not_plus_minus
 ;
 additional_bound.multiopt:
   additional_bound.multiopt additional_bound
