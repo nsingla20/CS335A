@@ -13,12 +13,12 @@ modifier:
 | "private"
 | "abstract"
 | "static"
+| "final"
 | "sealed"
 | "strictfp"
 | "transitive"
 | "transient"
 | "volatile"
-| "final"
 ;
 dot_ind.multiopt:
   dot_ind.multiopt '.' TOK_IDENTIFIER
@@ -511,10 +511,6 @@ local_variable_declaration_statement:
 ;
 local_variable_declaration:
   local_variable_type variable_declarator_list
-;
-local_variable_modifier:
-  "final"
-| /*empty*/
 ;
 local_variable_type:
   type
