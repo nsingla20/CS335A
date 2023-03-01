@@ -82,6 +82,7 @@ type_arguments:
 ;
 type_argument_list:
   type_argument.multiopt type_argument
+| /*empty*/
 ;
 type_argument.multiopt:
   type_argument.multiopt ',' type_argument
@@ -224,13 +225,9 @@ class_body_declaration:
 | constructor_declaration
 ;
 class_member_declaration:
-  field_declaration
-| method_declaration
+  method_declaration
 | class_declaration
 | interface_declaration
-;
-field_declaration:
-  modifier.multiopt type variable_declarator_list ';'
 ;
 variable_declarator_list:
   variable_declarator com_variable_declarator.multiopt
@@ -498,8 +495,7 @@ block_statement.multiopt:
 | /*empty*/
 ;
 block_statement:
-  local_class_or_interface_declaration
-| local_variable_declaration_statement
+  local_variable_declaration_statement
 | statement
 ;
 local_class_or_interface_declaration:
@@ -510,7 +506,7 @@ local_variable_declaration_statement:
   local_variable_declaration ';'
 ;
 local_variable_declaration:
-  modifier.multiopt local_variable_type variable_declarator_list
+  local_variable_type variable_declarator_list
 ;
 local_variable_type:
   type
@@ -786,7 +782,7 @@ class_instance_creation_expression:
 | primary '.' unqualified_class_instance_creation_expression
 ;
 unqualified_class_instance_creation_expression:
-  "new" type_arguments.opt class_or_interface_type_to_instantiate '(' argument_list.opt ')' class_body.opt
+  "new" class_or_interface_type '(' argument_list.opt ')' class_body.opt
 ;
 class_or_interface_type_to_instantiate:
    un_name type_arguments_or_diamond.opt
@@ -796,7 +792,8 @@ type_arguments_or_diamond.opt:
 | /*empty*/
 ;
 type_arguments_or_diamond:
-  type_arguments
+  '<' '>'
+| type_arguments
 ;
 field_access:
   primary '.' TOK_IDENTIFIER
