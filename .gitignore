@@ -12,6 +12,8 @@ milestone1/src/*
 !milestone1/src/mygra.l
 !milestone1/src/graph_rl.l
 !milestone1/src/toktype.l
+!milestone1/tests
+!milestone1/tests/*
 
 !milestone1/run.sh
 !milestone1/Makefile
