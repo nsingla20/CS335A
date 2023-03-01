@@ -55,6 +55,7 @@ reference_type:
 class_or_interface_type:
   TOK_IDENTIFIER type_arguments.opt
 | class_or_interface_type '.' TOK_IDENTIFIER type_arguments.opt
+| un_name
 ;
 array_type:
   class_or_interface_type dims
