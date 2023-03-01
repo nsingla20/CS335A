@@ -506,7 +506,7 @@ local_variable_declaration_statement:
   local_variable_declaration ';'
 ;
 local_variable_declaration:
-  local_variable_type variable_declarator_list
+  modifier.multiopt local_variable_type variable_declarator_list
 ;
 local_variable_type:
   type
