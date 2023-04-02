@@ -20,3 +20,9 @@ milestone1/src/*
 !milestone1/Makefile
 !milestone1/src/Makefile
 !milestone1/src/myASTGenerator
+
+milestone3/src/*
+!milestone3/src/grammer.y
+!milestone3/src/Makefile
+!milestone3/src/scanner.l
+!milestone3/src/myASTGenerator
