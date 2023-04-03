@@ -80,11 +80,7 @@ vector<string> import_list;
 int param_declaration = 0;
 bool ignoreDeclaration = false;
 
-struct expr {
-  char* s;
-  char* type;
-  char* v;
-};
+
 
 // Data structures to store the three address code
 // <operator, arg1, arg2, result>
@@ -112,7 +108,7 @@ int checkMethodArgs(string, string);
 string getFieldVariableType(string);
 int getArraySize(string);
 void copyString(char **, string);
-void copyData(struct expr **e, string s, string type, string v = "");
+void copyData(struct expr **e, string s="", string type="void", string v = "");
 string storeTemp(string op, string arg1, string arg2="_");
 void pushInstruction(string, string, string, string);
 void checkAndPushInstruction(string, string, string, string, int mode=0);
@@ -125,6 +121,13 @@ void yyerror(char const *);
 void yyerror (char const*);
 int yylex (YYSTYPE*);
 }
+%code requires {
+  struct expr {
+    char* s;
+    char* type;
+    char* v;
+  };
+}
 /* BISON DECLARATIONS */
 %union{
   char *s;
@@ -135,119 +138,119 @@ int yylex (YYSTYPE*);
 %verbose
 %define parse.trace
 %define api.pure
-%token <s> TOK_IDENTIFIER
-%token <s> TOK_INTEGERLITERAL
-%token <s> TOK_FLOATLITERAL
-%token <s> TOK_BOOLEANLITERAL
-%token <s> TOK_CHARLITERAL
-%token <s> TOK_STRINGLITERAL
-%token <s> TOK_TEXTBLOCKLITERAL
-%token <s> TOK_NULLLITERAL
-%token <s> TOK_33 "!"
-%token <s> TOK_3361 "!="
-%token <s> TOK_37 "%"
-%token <s> TOK_3761 "%="
-%token <s> TOK_38 "&"
-%token <s> TOK_3838 "&&"
-%token <s> TOK_3861 "&="
-%token <s> TOK_40 "("
-%token <s> TOK_41 ")"
-%token <s> TOK_42 "*"
-%token <s> TOK_4261 "*="
-%token <s> TOK_43 "+"
-%token <s> TOK_4343 "++"
-%token <s> TOK_4361 "+="
-%token <s> TOK_44 ","
-%token <s> TOK_45 "-"
-%token <s> TOK_4545 "--"
-%token <s> TOK_4561 "-="
-%token <s> TOK_4562 "->"
-%token <s> TOK_46 "."
-%token <s> TOK_464646 "..."
-%token <s> TOK_47 "/"
-%token <s> TOK_4761 "/="
-%token <s> TOK_58 ":"
-%token <s> TOK_5858 "::"
-%token <s> TOK_59 ";"
-%token <s> TOK_60 "<"
-%token <s> TOK_6060 "<<"
-%token <s> TOK_606061 "<<="
-%token <s> TOK_6061 "<="
-%token <s> TOK_61 "="
-%token <s> TOK_6161 "=="
-%token <s> TOK_62 ">"
-%token <s> TOK_6261 ">="
-%token <s> TOK_6262 ">>"
-%token <s> TOK_626261 ">>="
-%token <s> TOK_626262 ">>>"
-%token <s> TOK_62626261 ">>>="
-%token <s> TOK_63 "?"
-%token <s> TOK_91 "["
-%token <s> TOK_93 "]"
-%token <s> TOK_94 "^"
-%token <s> TOK_9461 "^="
-%token <s> TOK_abstract "abstract"
-%token <s> TOK_assert "assert"
-%token <s> TOK_boolean "boolean"
-%token <s> TOK_break "break"
-%token <s> TOK_byte "byte"
-%token <s> TOK_case "case"
-%token <s> TOK_catch "catch"
-%token <s> TOK_char "char"
-%token <s> TOK_class "class"
-%token <s> TOK_continue "continue"
-%token <s> TOK_default "default"
-%token <s> TOK_do "do"
-%token <s> TOK_double "double"
-%token <s> TOK_else "else"
-%token <s> TOK_enum "enum"
-%token <s> TOK_extends "extends"
-%token <s> TOK_final "final"
-%token <s> TOK_finally "finally"
-%token <s> TOK_float "float"
-%token <s> TOK_for "for"
-%token <s> TOK_if "if"
-%token <s> TOK_implements "implements"
-%token <s> TOK_import "import"
-%token <s> TOK_instanceof "instanceof"
-%token <s> TOK_int "int"
-%token <s> TOK_interface "interface"
-%token <s> TOK_long "long"
-%token <s> TOK_new "new"
-%token <s> TOK_package "package"
-%token <s> TOK_permits "permits"
-%token <s> TOK_private "private"
-%token <s> TOK_protected "protected"
-%token <s> TOK_public "public"
-%token <s> TOK_record "record"
-%token <s> TOK_return "return"
-%token <s> TOK_sealed "sealed"
-%token <s> TOK_short "short"
-%token <s> TOK_static "static"
-%token <s> TOK_strictfp "strictfp"
-%token <s> TOK_super "super"
-%token <s> TOK_switch "switch"
-%token <s> TOK_synchronized "synchronized"
-%token <s> TOK_this "this"
-%token <s> TOK_throw "throw"
-%token <s> TOK_throws "throws"
-%token <s> TOK_transient "transient"
-%token <s> TOK_transitive "transitive"
-%token <s> TOK_try "try"
-%token <s> TOK_var "var"
-%token <s> TOK_void "void"
-%token <s> TOK_volatile "volatile"
-%token <s> TOK_while "while"
-%token <s> TOK_yield "yield"
-%token <s> TOK_123 "{"
-%token <s> TOK_124 "|"
-%token <s> TOK_12461 "|="
-%token <s> TOK_124124 "||"
-%token <s> TOK_125 "}"
-%token <s> TOK_126 "~"
+%token <e> TOK_IDENTIFIER
+%token <e> TOK_INTEGERLITERAL
+%token <e> TOK_FLOATLITERAL
+%token <e> TOK_BOOLEANLITERAL
+%token <e> TOK_CHARLITERAL
+%token <e> TOK_STRINGLITERAL
+%token <e> TOK_TEXTBLOCKLITERAL
+%token <e> TOK_NULLLITERAL
+%token <e> TOK_33 "!"
+%token <e> TOK_3361 "!="
+%token <e> TOK_37 "%"
+%token <e> TOK_3761 "%="
+%token <e> TOK_38 "&"
+%token <e> TOK_3838 "&&"
+%token <e> TOK_3861 "&="
+%token <e> TOK_40 "("
+%token <e> TOK_41 ")"
+%token <e> TOK_42 "*"
+%token <e> TOK_4261 "*="
+%token <e> TOK_43 "+"
+%token <e> TOK_4343 "++"
+%token <e> TOK_4361 "+="
+%token <e> TOK_44 ","
+%token <e> TOK_45 "-"
+%token <e> TOK_4545 "--"
+%token <e> TOK_4561 "-="
+%token <e> TOK_4562 "->"
+%token <e> TOK_46 "."
+%token <e> TOK_464646 "..."
+%token <e> TOK_47 "/"
+%token <e> TOK_4761 "/="
+%token <e> TOK_58 ":"
+%token <e> TOK_5858 "::"
+%token <e> TOK_59 ";"
+%token <e> TOK_60 "<"
+%token <e> TOK_6060 "<<"
+%token <e> TOK_606061 "<<="
+%token <e> TOK_6061 "<="
+%token <e> TOK_61 "="
+%token <e> TOK_6161 "=="
+%token <e> TOK_62 ">"
+%token <e> TOK_6261 ">="
+%token <e> TOK_6262 ">>"
+%token <e> TOK_626261 ">>="
+%token <e> TOK_626262 ">>>"
+%token <e> TOK_62626261 ">>>="
+%token <e> TOK_63 "?"
+%token <e> TOK_91 "["
+%token <e> TOK_93 "]"
+%token <e> TOK_94 "^"
+%token <e> TOK_9461 "^="
+%token <e> TOK_abstract "abstract"
+%token <e> TOK_assert "assert"
+%token <e> TOK_boolean "boolean"
+%token <e> TOK_break "break"
+%token <e> TOK_byte "byte"
+%token <e> TOK_case "case"
+%token <e> TOK_catch "catch"
+%token <e> TOK_char "char"
+%token <e> TOK_class "class"
+%token <e> TOK_continue "continue"
+%token <e> TOK_default "default"
+%token <e> TOK_do "do"
+%token <e> TOK_double "double"
+%token <e> TOK_else "else"
+%token <e> TOK_enum "enum"
+%token <e> TOK_extends "extends"
+%token <e> TOK_final "final"
+%token <e> TOK_finally "finally"
+%token <e> TOK_float "float"
+%token <e> TOK_for "for"
+%token <e> TOK_if "if"
+%token <e> TOK_implements "implements"
+%token <e> TOK_import "import"
+%token <e> TOK_instanceof "instanceof"
+%token <e> TOK_int "int"
+%token <e> TOK_interface "interface"
+%token <e> TOK_long "long"
+%token <e> TOK_new "new"
+%token <e> TOK_package "package"
+%token <e> TOK_permits "permits"
+%token <e> TOK_private "private"
+%token <e> TOK_protected "protected"
+%token <e> TOK_public "public"
+%token <e> TOK_record "record"
+%token <e> TOK_return "return"
+%token <e> TOK_sealed "sealed"
+%token <e> TOK_short "short"
+%token <e> TOK_static "static"
+%token <e> TOK_strictfp "strictfp"
+%token <e> TOK_super "super"
+%token <e> TOK_switch "switch"
+%token <e> TOK_synchronized "synchronized"
+%token <e> TOK_this "this"
+%token <e> TOK_throw "throw"
+%token <e> TOK_throws "throws"
+%token <e> TOK_transient "transient"
+%token <e> TOK_transitive "transitive"
+%token <e> TOK_try "try"
+%token <e> TOK_var "var"
+%token <e> TOK_void "void"
+%token <e> TOK_volatile "volatile"
+%token <e> TOK_while "while"
+%token <e> TOK_yield "yield"
+%token <e> TOK_123 "{"
+%token <e> TOK_124 "|"
+%token <e> TOK_12461 "|="
+%token <e> TOK_124124 "||"
+%token <e> TOK_125 "}"
+%token <e> TOK_126 "~"
 %type<e> IDENTIFIER.opt
-%type<s> additional_bound
-%type<s> additional_bound.multiopt
+%type<e> additional_bound
+%type<e> additional_bound.multiopt
 %type<e> additive_expression
 %type<e> and_expression
 %type<e> argument_list
@@ -255,11 +258,11 @@ int yylex (YYSTYPE*);
 %type<e> array_access
 %type<e> array_creation_expression
 %type<e> array_initializer
-%type<s> array_type
+%type<e> array_type
 %type<e> assert_statement
 %type<e> assignment
 %type<e> assignment_expression
-%type<s> assignment_operator
+%type<e> assignment_operator
 %type<e> basic_for_init
 %type<e> basic_for_tail
 %type<e> block
@@ -276,49 +279,49 @@ int yylex (YYSTYPE*);
 %type<e> catch_type
 %type<e> catches
 %type<e> catches.opt
-%type<s> class_body
-%type<s> class_body.opt
-%type<s> class_body_declaration
-%type<s> class_body_declaration.multiopt
-%type<s> class_declaration
-%type<s> class_extends
-%type<s> class_extends.opt
-%type<s> class_implements
-%type<s> class_implements.opt
+%type<e> class_body
+%type<e> class_body.opt
+%type<e> class_body_declaration
+%type<e> class_body_declaration.multiopt
+%type<e> class_declaration
+%type<e> class_extends
+%type<e> class_extends.opt
+%type<e> class_implements
+%type<e> class_implements.opt
 %type<e> class_instance_creation_expression
-%type<s> class_member_declaration
-%type<s> class_or_interface_type
-%type<s> class_permits
-%type<s> class_permits.opt
+%type<e> class_member_declaration
+%type<e> class_or_interface_type
+%type<e> class_permits
+%type<e> class_permits.opt
 %type<e> com.opt
 %type<e> com_case_constant.multiopt
 %type<e> com_enum_constant.multiopt
 %type<e> com_exception_type.multiopt
 %type<e> com_expression.multiopt
 %type<e> com_formal_parameter.multiopt
-%type<s> com_interface_type.multiopt
+%type<e> com_interface_type.multiopt
 %type<e> com_record_component.multiopt
 %type<e> com_statement_expression.multiopt
-%type<s> com_type_name.multiopt
-%type<s> com_type_parameter.multiopt
+%type<e> com_type_name.multiopt
+%type<e> com_type_parameter.multiopt
 %type<e> com_variable_declarator.multiopt
 %type<e> com_variable_initializer.multiopt
 %type<e> compact_constructor_declaration
-%type<s> compilation_unit
+%type<e> compilation_unit
 %type<e> conditional_and_expression
 %type<e> conditional_expression
 %type<e> conditional_or_expression
 %type<e> constructor_body
-%type<s> constructor_declaration
+%type<e> constructor_declaration
 %type<e> constructor_declarator
 %type<e> continue_statement
 %type<e> dim_expr
 %type<e> dim_expr.multiopt
 %type<e> dim_exprs
-%type<s> dims
-%type<s> dims.opt
+%type<e> dims
+%type<e> dims.opt
 %type<e> do_statement
-%type<s> dot_ind.multiopt
+%type<e> dot_ind.multiopt
 %type<e> empty_statement
 %type<e> enhanced_for_tail
 %type<e> enum_body
@@ -327,7 +330,7 @@ int yylex (YYSTYPE*);
 %type<e> enum_constant
 %type<e> enum_constant_list
 %type<e> enum_constant_list.opt
-%type<s> enum_declaration
+%type<e> enum_declaration
 %type<e> eq_variable_initializer.opt
 %type<e> equality_expression
 %type<e> exception_type
@@ -337,10 +340,10 @@ int yylex (YYSTYPE*);
 %type<e> expression.opt
 %type<e> expression_statement
 %type<e> field_access
-%type<s> field_declaration
+%type<e> field_declaration
 %type<e> finally
 %type<e> finally.opt
-%type<s> floating_point_type
+%type<e> floating_point_type
 %type<e> for_statement
 %type<e> for_update
 %type<e> for_update.opt
@@ -351,15 +354,15 @@ int yylex (YYSTYPE*);
 %type<e> if_condition
 %type<e> if_then_else_statement
 %type<e> if_then_statement
-%type<s> import_declaration
-%type<s> import_declaration.multiopt
+%type<e> import_declaration
+%type<e> import_declaration.multiopt
 %type<e> inclusive_or_expression
-%type<s> input
-%type<s> instance_initializer
+%type<e> input
+%type<e> instance_initializer
 %type<e> instanceof_expression
-%type<s> integral_type
+%type<e> integral_type
 %type<e> interface_body
-%type<s> interface_declaration
+%type<e> interface_declaration
 %type<e> interface_extends
 %type<e> interface_extends.opt
 %type<e> interface_member_declaration
@@ -367,7 +370,7 @@ int yylex (YYSTYPE*);
 %type<e> interface_method_declaration
 %type<e> interface_permits
 %type<e> interface_permits.opt
-%type<s> interface_type_list
+%type<e> interface_type_list
 %type<e> labeled_statement
 %type<e> left_hand_side
 %type<e> local_class_or_interface_declaration
@@ -375,20 +378,20 @@ int yylex (YYSTYPE*);
 %type<e> local_variable_declaration_statement
 %type<e> local_variable_type
 %type<e> method_body
-%type<s> method_declaration
+%type<e> method_declaration
 %type<e> method_parameters
 %type<e> method_header
 %type<e> method_invocation
 %type<e> method_reference
-%type<s> modifier
-%type<s> modifier.multiopt
+%type<e> modifier
+%type<e> modifier.multiopt
 %type<e> multiplicative_expression
-%type<s> normal_class_declaration
+%type<e> normal_class_declaration
 %type<e> normal_interface_declaration
-%type<s> numeric_type
-%type<s> ordinary_compilation_unit
-%type<s> package_declaration
-%type<s> package_declaration.opt
+%type<e> numeric_type
+%type<e> ordinary_compilation_unit
+%type<e> package_declaration
+%type<e> package_declaration.opt
 %type<e> pattern
 %type<e> post_decrement_expression
 %type<e> post_increment_expression
@@ -397,16 +400,16 @@ int yylex (YYSTYPE*);
 %type<e> pre_increment_expression
 %type<e> primary
 %type<e> primary_no_new_array
-%type<s> primitive_type
+%type<e> primitive_type
 %type<e> record_body
 %type<e> record_body_declaration
 %type<e> record_body_declaration.multiopt
 %type<e> record_component
 %type<e> record_component_list
 %type<e> record_component_list.opt
-%type<s> record_declaration
+%type<e> record_declaration
 %type<e> record_header
-%type<s> reference_type
+%type<e> reference_type
 %type<e> relational_expression
 %type<e> resource
 %type<e> resource_list
@@ -415,14 +418,14 @@ int yylex (YYSTYPE*);
 %type<e> semcol.opt
 %type<e> semcol_resource.multiopt
 %type<e> shift_expression
-%type<s> simple_type_name
-%type<s> single_static_import_declaration
-%type<s> single_type_import_declaration
+%type<e> simple_type_name
+%type<e> single_static_import_declaration
+%type<e> single_type_import_declaration
 %type<e> statement
 %type<e> statement_expression
 %type<e> statement_expression_list
 %type<e> statement_without_trailing_substatement
-%type<s> static_import_on_demand_declaration
+%type<e> static_import_on_demand_declaration
 %type<e> switch_block
 %type<e> switch_block_statement_group
 %type<e> switch_block_statement_group.multiopt
@@ -436,18 +439,18 @@ int yylex (YYSTYPE*);
 %type<e> throw_statement
 %type<e> throws
 %type<e> throws.opt
-%type<s> top_level_class_or_interface_declaration
-%type<s> top_level_class_or_interface_declaration.multiopt
+%type<e> top_level_class_or_interface_declaration
+%type<e> top_level_class_or_interface_declaration.multiopt
 %type<e> try_statement
 %type<e> try_with_resources_statement
-%type<s> type
-%type<s> type_bound
-%type<s> type_bound.opt
-%type<s> type_import_on_demand_declaration
-%type<s> type_parameter
-%type<s> type_parameter_list
-%type<s> type_parameters
-%type<s> type_parameters.opt
+%type<e> type
+%type<e> type_bound
+%type<e> type_bound.opt
+%type<e> type_import_on_demand_declaration
+%type<e> type_parameter
+%type<e> type_parameter_list
+%type<e> type_parameters
+%type<e> type_parameters.opt
 %type<e> type_pattern
 %type<e> un_name
 %type<e> unary_expression
@@ -488,38 +491,38 @@ input:
   compilation_unit
 ;
 modifier.multiopt:
-  modifier.multiopt modifier    { modifiers.insert($2); copyString(&$$, string($1) + " " + string($2)); }
-| %empty                        { copyString(&$$, ""); }
+  modifier.multiopt modifier    { modifiers.insert($2->s); copyString(&($$->s), string($1->s) + " " + string($2->s)); }
+| %empty {copyData(&$$);}
 ;
 modifier:
-  TOK_public     
-| TOK_protected  
-| TOK_private	   
-| TOK_abstract   
-| TOK_static     
-| TOK_final      
-| TOK_sealed     
-| TOK_strictfp   
-| TOK_transitive 
-| TOK_transient  
-| TOK_volatile   
+  TOK_public
+| TOK_protected
+| TOK_private
+| TOK_abstract
+| TOK_static
+| TOK_final
+| TOK_sealed
+| TOK_strictfp
+| TOK_transitive
+| TOK_transient
+| TOK_volatile
 ;
 dot_ind.multiopt:
-  dot_ind.multiopt TOK_46 TOK_IDENTIFIER	    { copyString(&$$, string($1) + "." + string($3)); }
-| %empty			                                { copyString(&$$, ""); }
+  dot_ind.multiopt TOK_46 TOK_IDENTIFIER	    { copyString(&($$->s), string($1->s) + "." + string($3->s)); }
+| %empty {copyData(&$$);}
 ;
 	/* Types, Values and Variables */
 type:
-  primitive_type              { copyString(&$$, string($1)); cur_type = string($1); }
-| reference_type              { copyString(&$$, string($1)); cur_type = string($1); }
+  primitive_type              { copyString(&($$->s), string($1->s)); cur_type = string($1->s); }
+| reference_type              { copyString(&($$->s), string($1->s)); cur_type = string($1->s); }
 ;
 primitive_type:
-  numeric_type			          { copyString(&$$, string($1)); }
-| TOK_boolean	
+  numeric_type			          { copyString(&($$->s), string($1->s)); }
+| TOK_boolean
 ;
 numeric_type:
-  integral_type			          { copyString(&$$, string($1)); }
-| floating_point_type	        { copyString(&$$, string($1)); }
+  integral_type			          { copyString(&($$->s), string($1->s)); }
+| floating_point_type	        { copyString(&($$->s), string($1->s)); }
 ;
 integral_type:
   TOK_byte            { cur_size = 1; }
@@ -533,118 +536,118 @@ floating_point_type:
 | TOK_double          { cur_size = 8; }
 ;
 reference_type:
-  class_or_interface_type         { copyString(&$$, string($1)); }
-| array_type			                { copyString(&$$, string($1)); }
+  class_or_interface_type         { copyString(&($$->s), string($1->s)); }
+| array_type			                { copyString(&($$->s), string($1->s)); }
 ;
 class_or_interface_type:
-  un_name                  { copyString(&$$, string($1->s)); }
+  un_name                  { copyString(&($$->s), string($1->s)); }
 ;
 array_type:
-  class_or_interface_type dims    { copyString(&$$, string($1) + string($2)); }
+  class_or_interface_type dims    { copyString(&($$->s), string($1->s) + string($2->s)); }
 ;
 dims:
-  TOK_91 TOK_93			              { copyString(&$$, "[]"); }
-| dims TOK_91 TOK_93              { copyString(&$$, string($1) + "[]"); }
+  TOK_91 TOK_93			              { copyString(&($$->s), "[]"); }
+| dims TOK_91 TOK_93              { copyString(&($$->s), string($1->s) + "[]"); }
 ;
 type_parameter:
-   TOK_IDENTIFIER type_bound.opt  { copyString(&$$, string($1) + string($2)); }
+   TOK_IDENTIFIER type_bound.opt  { copyString(&($$->s), string($1->s) + string($2->s)); }
 ;
 type_bound.opt:
-  type_bound			                { copyString(&$$, string($1)); }
-| %empty  			                  { copyString(&$$, ""); }
+  type_bound			                { copyString(&($$->s), string($1->s)); }
+| %empty {copyData(&$$);}
 ;
 type_bound:
-  TOK_extends  class_or_interface_type additional_bound.multiopt	  { copyString(&$$, " extends " + string($2) + string($3)); }	
+  TOK_extends  class_or_interface_type additional_bound.multiopt	  { copyString(&($$->s), " extends " + string($2->s) + string($3->s)); }
 ;
 additional_bound:
-  TOK_38 class_or_interface_type			  { copyString(&$$, " & " + string($2)); }
+  TOK_38 class_or_interface_type			  { copyString(&($$->s), " & " + string($2->s)); }
 ;
 additional_bound.multiopt:
   additional_bound.multiopt additional_bound
-| %empty
+| %empty {copyData(&$$);}
 ;
 
 
   /* Names */
 un_name:
   TOK_IDENTIFIER                    {
-          checkDeclaration(string($1));
-          string type = lookupType(string($1));
+          checkDeclaration(string($1->s));
+          string type = lookupType(string($1->s));
           if (type == "")
             type = "unknown type";
-          copyData(&$$, string($1), type, $1);
+          copyData(&$$, string($1->s), type, $1->s);
         }
-| un_name TOK_46 TOK_IDENTIFIER     { 
-          string s = string($1->s) + "." + string($3);
-          copyData(&$$, s, s, s); 
+| un_name TOK_46 TOK_IDENTIFIER     {
+          string s = string($1->s) + "." + string($3->s);
+          copyData(&$$, s, s, s);
           // TODO: fix type, 3AC
         }
 ;
 
   /* Packages and Modules */
 compilation_unit:
-  ordinary_compilation_unit			
+  ordinary_compilation_unit
 ;
 ordinary_compilation_unit:
-  package_declaration.opt { ignoreDeclaration = true; } import_declaration.multiopt { ignoreDeclaration = false; } top_level_class_or_interface_declaration.multiopt			
+  package_declaration.opt { ignoreDeclaration = true; } import_declaration.multiopt { ignoreDeclaration = false; } top_level_class_or_interface_declaration.multiopt
 ;
 package_declaration.opt:
-  package_declaration			
-| %empty  			
+  package_declaration
+| %empty {copyData(&$$);}
 ;
 package_declaration:
-  TOK_package TOK_IDENTIFIER dot_ind.multiopt TOK_59  { package_name = $2 + string($3); }
+  TOK_package TOK_IDENTIFIER dot_ind.multiopt TOK_59  { package_name = string($2->s) + string($3->s); }
 ;
 import_declaration.multiopt:
-  import_declaration.multiopt import_declaration	    { import_list.push_back($2); }
-| %empty  			
+  import_declaration.multiopt import_declaration	    { import_list.push_back($2->s); }
+| %empty {copyData(&$$);}
 ;
 import_declaration:
-  single_type_import_declaration			
-| type_import_on_demand_declaration			
-| single_static_import_declaration			
-| static_import_on_demand_declaration			
+  single_type_import_declaration
+| type_import_on_demand_declaration
+| single_static_import_declaration
+| static_import_on_demand_declaration
 ;
 single_type_import_declaration:
-  TOK_import un_name TOK_59                                   { copyString(&$$, string($2->s)); }
+  TOK_import un_name TOK_59                                   { copyString(&($$->s), string($2->s)); }
 ;
 type_import_on_demand_declaration:
-  TOK_import un_name TOK_46 TOK_42 TOK_59		                  { copyString(&$$, string($2->s) + ".*"); }
+  TOK_import un_name TOK_46 TOK_42 TOK_59		                  { copyString(&($$->s), string($2->s) + ".*"); }
 ;
 single_static_import_declaration:
-  TOK_import TOK_static un_name TOK_46 TOK_IDENTIFIER TOK_59  { copyString(&$$, "static " + string($3->s) + "." + string($5)); }	
+  TOK_import TOK_static un_name TOK_46 TOK_IDENTIFIER TOK_59  { copyString(&($$->s), "static " + string($3->s) + "." + string($5->s)); }
 ;
 static_import_on_demand_declaration:
-  TOK_import TOK_static un_name TOK_46 TOK_42 TOK_59	        { copyString(&$$, "static " + string($3->s) + ".*"); }	
+  TOK_import TOK_static un_name TOK_46 TOK_42 TOK_59	        { copyString(&($$->s), "static " + string($3->s) + ".*"); }
 ;
 top_level_class_or_interface_declaration.multiopt:
   top_level_class_or_interface_declaration.multiopt top_level_class_or_interface_declaration
-| %empty
+| %empty {copyData(&$$);}
 ;
 top_level_class_or_interface_declaration:
-  class_declaration			
-| interface_declaration			
-| TOK_59			
+  class_declaration
+| interface_declaration
+| TOK_59
 ;
 com_type_name.multiopt:
-  com_type_name.multiopt TOK_44 un_name       { copyString(&$$, string($1) + "," + string($3->s)); }
-| %empty			                                { copyString(&$$, ""); }
+  com_type_name.multiopt TOK_44 un_name       { copyString(&($$->s), string($1->s) + "," + string($3->s)); }
+| %empty {copyData(&$$);}
 ;
 
   /* Classes */
 class_declaration:
   normal_class_declaration
-| enum_declaration			
-| record_declaration			
+| enum_declaration
+| record_declaration
 ;
 normal_class_declaration:
   modifier.multiopt TOK_class TOK_IDENTIFIER type_parameters.opt class_extends.opt class_implements.opt class_permits.opt {
                           int offset = symbol_table[cur_table_idx].size;
                           struct info cur_info = createInfo("", "class", 0, offset, yylineno, modifiers);
-                          string name = string($3);
+                          string name = string($3->s);
                           insertSymbol(name, &cur_info);
                           modifiers.clear();
-                          createTable(name, 1, $5, 0, true);
+                          createTable(name, 1, $5->s, 0, true);
                         } class_body {
                           int prev_index = cur_table_idx;
                           cur_table_idx = symbol_table[cur_table_idx].parent;
@@ -652,64 +655,64 @@ normal_class_declaration:
                         }
 ;
 type_parameters.opt:
-  type_parameters			  { copyString(&$$, string($1)); }
-| %empty			          { copyString(&$$, ""); }
+  type_parameters			  { copyString(&($$->s), string($1->s)); }
+| %empty {copyData(&$$);}
 ;
 class_extends.opt:
-  class_extends			    { copyString(&$$, string($1)); }
-| %empty			          { copyString(&$$, "None"); }
+  class_extends			    { copyString(&($$->s), string($1->s)); }
+| %empty {copyData(&$$);}
 ;
 class_implements.opt:
-  class_implements			{ copyString(&$$, string($1)); }
-| %empty			          { copyString(&$$, ""); }
+  class_implements			{ copyString(&($$->s), string($1->s)); }
+| %empty {copyData(&$$);}
 ;
 class_permits.opt:
-  class_permits			    { copyString(&$$, string($1)); }
-| %empty			          { copyString(&$$, ""); }
+  class_permits			    { copyString(&($$->s), string($1->s)); }
+| %empty {copyData(&$$);}
 ;
 type_parameters:
-  TOK_60 type_parameter_list TOK_62		  { copyString(&$$, "<" + string($2) + ">"); }	
+  TOK_60 type_parameter_list TOK_62		  { copyString(&($$->s), "<" + string($2->s) + ">"); }
 ;
 type_parameter_list:
-  type_parameter com_type_parameter.multiopt  { copyString(&$$, string($1) + string($2)); }
+  type_parameter com_type_parameter.multiopt  { copyString(&($$->s), string($1->s) + string($2->s)); }
 ;
 com_type_parameter.multiopt:
-  com_type_parameter.multiopt TOK_44 type_parameter { copyString(&$$, string($1) + "," + string($3)); }
-| %empty			                                      { copyString(&$$, ""); }
+  com_type_parameter.multiopt TOK_44 type_parameter { copyString(&($$->s), string($1->s) + "," + string($3->s)); }
+| %empty {copyData(&$$);}
 ;
 class_extends:
-  TOK_extends class_or_interface_type     { copyString(&$$, string($2)); }
+  TOK_extends class_or_interface_type     { copyString(&($$->s), string($2->s)); }
 ;
 class_implements:
-  TOK_implements interface_type_list		  { copyString(&$$, string($2)); }
+  TOK_implements interface_type_list		  { copyString(&($$->s), string($2->s)); }
 ;
 interface_type_list:
-  class_or_interface_type com_interface_type.multiopt		  { copyString(&$$, string($1) + string($2)); }
+  class_or_interface_type com_interface_type.multiopt		  { copyString(&($$->s), string($1->s) + string($2->s)); }
 ;
 com_interface_type.multiopt:
-  com_interface_type.multiopt TOK_44 class_or_interface_type	  { copyString(&$$, string($1) + "," + string($3)); }	
-| %empty			                                                  { copyString(&$$, ""); }
+  com_interface_type.multiopt TOK_44 class_or_interface_type	  { copyString(&($$->s), string($1->s) + "," + string($3->s)); }
+| %empty {copyData(&$$);}
 ;
 class_permits:
-  TOK_permits un_name com_type_name.multiopt	          { copyString(&$$, " permits " + string($2->s) + string($3)); }		
+  TOK_permits un_name com_type_name.multiopt	          { copyString(&($$->s), " permits " + string($2->s) + string($3->s)); }
 ;
 class_body:
-   TOK_123 class_body_declaration.multiopt TOK_125		  { copyString(&$$, "{" + string($2) + "}"); }
+   TOK_123 class_body_declaration.multiopt TOK_125		  { copyString(&($$->s), "{" + string($2->s) + "}"); }
 ;
 class_body_declaration.multiopt:
-  class_body_declaration.multiopt class_body_declaration  { copyString(&$$, string($1) + string($2)); }			
-| %empty			                                            { copyString(&$$, ""); }
+  class_body_declaration.multiopt class_body_declaration  { copyString(&($$->s), string($1->s) + string($2->s)); }
+| %empty {copyData(&$$);}
 ;
 class_body_declaration:
-  class_member_declaration		    { copyString(&$$, string($1)); }
-| instance_initializer			      { copyString(&$$, string($1)); }
-| constructor_declaration			    { copyString(&$$, string($1)); }
+  class_member_declaration		    { copyString(&($$->s), string($1->s)); }
+| instance_initializer			      { copyString(&($$->s), string($1->s)); }
+| constructor_declaration			    { copyString(&($$->s), string($1->s)); }
 ;
 class_member_declaration:
-  field_declaration			          { copyString(&$$, string($1)); }
-| method_declaration			        { copyString(&$$, string($1)); }
-| class_declaration			          { copyString(&$$, string($1)); }
-| interface_declaration			      { copyString(&$$, string($1)); }
+  field_declaration			          { copyString(&($$->s), string($1->s)); }
+| method_declaration			        { copyString(&($$->s), string($1->s)); }
+| class_declaration			          { copyString(&($$->s), string($1->s)); }
+| interface_declaration			      { copyString(&($$->s), string($1->s)); }
 ;
 field_declaration:
   modifier.multiopt type variable_declarator_list TOK_59 {
@@ -722,18 +725,18 @@ variable_declarator_list:
   variable_declarator com_variable_declarator.multiopt
 ;
 com_variable_declarator.multiopt:
-  com_variable_declarator.multiopt TOK_44 variable_declarator			
-| %empty			
+  com_variable_declarator.multiopt TOK_44 variable_declarator
+| %empty {copyData(&$$);}
 ;
 variable_declarator:
-  variable_declarator_id eq_variable_initializer.opt  { 
+  variable_declarator_id eq_variable_initializer.opt  {
           copyData(&$$, $1->s, $1->type);
           string symbol = string($1->s);
           string type = lookupType(symbol);
           if (string($2->s) != "") {
             typeCheck(type, $2->type);
             pushInstruction("_", $2->v, "_", $1->v);
-            
+
             string dims = string($1->type);
             if (dims.size() >= 2 && dims[0] == '[' && dims[1] == ']') {
               int sz = getArraySize($2->v);
@@ -747,23 +750,23 @@ variable_declarator:
 ;
 eq_variable_initializer.opt:
   TOK_61 variable_initializer { copyData(&$$, $2->s, $2->type, $2->v); }
-| %empty	{ copyData(&$$, "", ""); }
+| %empty {copyData(&$$);}
 ;
 variable_declarator_id:
   TOK_IDENTIFIER dims.opt   {
-                copyData(&$$, $1, $2, $1);
+                copyData(&$$, $1->s, $2->s, $1->s);
                 if (param_declaration == 0) {
                   int offset = symbol_table[cur_table_idx].size;
-                  string type = cur_type + string($2);
+                  string type = cur_type + string($2->s);
                   struct info cur_info = createInfo(type, "variable", cur_size, offset, yylineno, modifiers);
-                  insertSymbol($1, &cur_info);
+                  insertSymbol($1->s, &cur_info);
                   symbol_table[cur_table_idx].size += cur_size;
                 }
               }
 ;
 dims.opt:
-  dims			    { copyString(&$$, string($1)); }
-| %empty			  { copyString(&$$, ""); }
+  dims			    { copyString(&($$->s), string($1->s)); }
+| %empty {copyData(&$$);}
 ;
 variable_initializer:
   expression
@@ -776,13 +779,13 @@ method_header:
   type TOK_IDENTIFIER {
               // symbol table entry
               int offset = symbol_table[cur_table_idx].size;
-              struct info cur_info = createInfo($1, "method", 0, offset, yylineno, modifiers);
-              string name = string($2);
+              struct info cur_info = createInfo($1->s, "method", 0, offset, yylineno, modifiers);
+              string name = string($2->s);
               insertSymbol(name, &cur_info);
               modifiers.clear();
               string class_name = symbol_table[cur_table_idx].name;
               createTable(name, 0, "", 1, true);
-              symbol_table[cur_table_idx].return_type = string($1);
+              symbol_table[cur_table_idx].return_type = string($1->s);
               cur_size = 0;
               param_declaration = 1;
               // 3AC
@@ -796,7 +799,7 @@ method_header:
               // symbol table entry
               int offset = symbol_table[cur_table_idx].size;
               struct info cur_info = createInfo("void", "method", 0, offset, yylineno, modifiers);
-              string name = string($2);
+              string name = string($2->s);
               insertSymbol(name, &cur_info);
               modifiers.clear();
               string class_name = symbol_table[cur_table_idx].name;
@@ -812,26 +815,26 @@ method_header:
             } method_parameters throws.opt
 ;
 throws.opt:
-  throws			
-| %empty			
+  throws
+| %empty {copyData(&$$);}
 ;
 method_parameters:
-  TOK_40 { param_declaration = 1;} formal_parameter_list.opt TOK_41 dims.opt { param_declaration = 0;} 
+  TOK_40 { param_declaration = 1;} formal_parameter_list.opt TOK_41 dims.opt { param_declaration = 0;}
 ;
 formal_parameter_list.opt:
   formal_parameter_list
-| %empty			
+| %empty {copyData(&$$);}
 ;
 formal_parameter_list:
-  formal_parameter com_formal_parameter.multiopt 
+  formal_parameter com_formal_parameter.multiopt
 ;
 com_formal_parameter.multiopt:
-  com_formal_parameter.multiopt TOK_44 formal_parameter			
-| %empty			
+  com_formal_parameter.multiopt TOK_44 formal_parameter
+| %empty {copyData(&$$);}
 ;
 formal_parameter:
   modifier.multiopt type variable_declarator_id {
-                string type = string($2) + string($3->type);
+                string type = string($2->s) + string($3->type);
                 struct info cur_info = createInfo(type, "parameter", cur_size, 0, yylineno, modifiers);
                 for (auto itr = symbol_table[cur_table_idx].parameters.begin(); itr != symbol_table[cur_table_idx].parameters.end(); itr++) {
                   if (itr->first == $3->s) {
@@ -841,39 +844,39 @@ formal_parameter:
                 symbol_table[cur_table_idx].parameters.push_back({$3->s,cur_info});
                 cur_size = 0;
               }
-| variable_arity_parameter			
+| variable_arity_parameter
 ;
 variable_arity_parameter:
   modifier.multiopt type TOK_464646 TOK_IDENTIFIER	{
-                string type = string($2) + "...";
+                string type = string($2->s) + "...";
                 struct info cur_info = createInfo(type, "parameter", cur_size, 0, yylineno, modifiers);
                 for (auto itr = symbol_table[cur_table_idx].parameters.begin(); itr != symbol_table[cur_table_idx].parameters.end(); itr++) {
-                  if (itr->first == $4) {
-                    cout << "Error at line no " << yylineno << ": " << "Parameter with name " << string($4) << " already declared" << endl;
+                  if (itr->first == $4->s) {
+                    cout << "Error at line no " << yylineno << ": " << "Parameter with name " << string($4->s) << " already declared" << endl;
                   }
                 }
-                symbol_table[cur_table_idx].parameters.push_back({$4,cur_info});
+                symbol_table[cur_table_idx].parameters.push_back({$4->s,cur_info});
               }
 ;
 throws:
-  TOK_throws exception_type_list			
+  TOK_throws exception_type_list
 ;
 exception_type_list:
-  exception_type com_exception_type.multiopt			
+  exception_type com_exception_type.multiopt
 ;
 com_exception_type.multiopt:
-  com_exception_type.multiopt TOK_44 exception_type			
-| %empty			
+  com_exception_type.multiopt TOK_44 exception_type
+| %empty {copyData(&$$);}
 ;
 exception_type:
-  class_or_interface_type			
+  class_or_interface_type
 ;
 method_body:
-  block			
-| TOK_59			
+  block
+| TOK_59
 ;
 instance_initializer:
-  block			
+  block
 ;
 constructor_declaration:
   modifier.multiopt constructor_declarator throws.opt constructor_body { cur_table_idx = symbol_table[cur_table_idx].parent; cur_method = -1; }
@@ -881,15 +884,15 @@ constructor_declaration:
 constructor_declarator:
   simple_type_name {
               // Symbol table entry
-              symbol_table[cur_table_idx].return_type = string($1);
+              symbol_table[cur_table_idx].return_type = string($1->s);
               int offset = symbol_table[cur_table_idx].size;
-              struct info cur_info = createInfo($1, "constructor", 0, offset, yylineno, modifiers);
-              string name = string($1);
+              struct info cur_info = createInfo($1->s, "constructor", 0, offset, yylineno, modifiers);
+              string name = string($1->s);
               insertSymbol(name, &cur_info);
               modifiers.clear();
               string class_name = symbol_table[cur_table_idx].name;
               createTable(name, 0, "", 1, true);
-              symbol_table[cur_table_idx].return_type = string($1);
+              symbol_table[cur_table_idx].return_type = string($1->s);
               param_declaration = 1;
               // 3AC
               pair<string, vector<vector<string>>> p;
@@ -903,137 +906,137 @@ simple_type_name:
   TOK_IDENTIFIER
 ;
 constructor_body:
-  TOK_123 block_statements.opt TOK_125			
+  TOK_123 block_statements.opt TOK_125
 ;
 block_statements.opt:
-  block_statements			
-| %empty			
+  block_statements
+| %empty {copyData(&$$);}
 ;
 enum_declaration:
-  modifier.multiopt TOK_enum TOK_IDENTIFIER class_implements.opt enum_body			
+  modifier.multiopt TOK_enum TOK_IDENTIFIER class_implements.opt enum_body
 ;
 enum_body:
-  TOK_123 enum_constant_list.opt com.opt enum_body_declarations.opt TOK_125			
+  TOK_123 enum_constant_list.opt com.opt enum_body_declarations.opt TOK_125
 ;
 com.opt:
   TOK_44			{ copyData(&$$, ",", ""); }
-| %empty			{ copyData(&$$, "", ""); }
+| %empty {copyData(&$$);}
 ;
 enum_body_declarations.opt:
-  enum_body_declarations			
-| %empty			
+  enum_body_declarations
+| %empty {copyData(&$$);}
 ;
 enum_constant_list.opt:
-  enum_constant_list			
-| %empty			
+  enum_constant_list
+| %empty {copyData(&$$);}
 ;
 enum_constant_list:
-  enum_constant com_enum_constant.multiopt			
+  enum_constant com_enum_constant.multiopt
 ;
 com_enum_constant.multiopt:
-  com_enum_constant.multiopt TOK_44 enum_constant			
-| %empty			
+  com_enum_constant.multiopt TOK_44 enum_constant
+| %empty {copyData(&$$);}
 ;
 enum_constant:
-   TOK_IDENTIFIER TOK_91 TOK_40 argument_list.opt TOK_41 TOK_93 class_body.opt			
+   TOK_IDENTIFIER TOK_91 TOK_40 argument_list.opt TOK_41 TOK_93 class_body.opt
 ;
 class_body.opt:
-  class_body			
-| %empty			
+  class_body
+| %empty {copyData(&$$);}
 ;
 enum_body_declarations:
-  TOK_59 class_body_declaration.multiopt			
+  TOK_59 class_body_declaration.multiopt
 ;
 record_declaration:
-  modifier.multiopt TOK_record TOK_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body			
+  modifier.multiopt TOK_record TOK_IDENTIFIER type_parameters.opt record_header class_implements.opt record_body
 ;
 record_header:
-  TOK_40 record_component_list.opt TOK_41			
+  TOK_40 record_component_list.opt TOK_41
 ;
 record_component_list.opt:
-  record_component_list			
-| %empty			
+  record_component_list
+| %empty {copyData(&$$);}
 ;
 record_component_list:
-  record_component com_record_component.multiopt			
+  record_component com_record_component.multiopt
 ;
 com_record_component.multiopt:
-  com_record_component.multiopt TOK_44 record_component			
-| %empty			
+  com_record_component.multiopt TOK_44 record_component
+| %empty {copyData(&$$);}
 ;
 record_component:
-  type TOK_IDENTIFIER			
-| variable_arity_record_component			
+  type TOK_IDENTIFIER
+| variable_arity_record_component
 ;
 variable_arity_record_component:
-  type  TOK_464646 TOK_IDENTIFIER			
+  type  TOK_464646 TOK_IDENTIFIER
 ;
 record_body:
-  TOK_123 record_body_declaration.multiopt TOK_125			
+  TOK_123 record_body_declaration.multiopt TOK_125
 ;
 record_body_declaration.multiopt:
-  record_body_declaration.multiopt record_body_declaration			
-| %empty			
+  record_body_declaration.multiopt record_body_declaration
+| %empty {copyData(&$$);}
 ;
 record_body_declaration:
-  class_body_declaration			
-| compact_constructor_declaration			
+  class_body_declaration
+| compact_constructor_declaration
 ;
 compact_constructor_declaration:
-  modifier.multiopt simple_type_name constructor_body			
+  modifier.multiopt simple_type_name constructor_body
 ;
 
 
 	/* Interfaces */
 
 interface_declaration:
-  normal_interface_declaration			
+  normal_interface_declaration
 ;
 normal_interface_declaration:
-  modifier.multiopt TOK_interface TOK_IDENTIFIER type_parameters.opt interface_extends.opt interface_permits.opt interface_body			
+  modifier.multiopt TOK_interface TOK_IDENTIFIER type_parameters.opt interface_extends.opt interface_permits.opt interface_body
 ;
 interface_extends.opt:
-  interface_extends			
-| %empty			
+  interface_extends
+| %empty {copyData(&$$);}
 ;
 interface_permits.opt:
-  interface_permits			
-| %empty			
+  interface_permits
+| %empty {copyData(&$$);}
 ;
 interface_extends:
-  TOK_extends interface_type_list			
+  TOK_extends interface_type_list
 ;
 interface_permits:
-  TOK_permits un_name com_type_name.multiopt			
+  TOK_permits un_name com_type_name.multiopt
 ;
 interface_body:
-  TOK_123 interface_member_declaration.multiopt TOK_125			
+  TOK_123 interface_member_declaration.multiopt TOK_125
 ;
 interface_member_declaration.multiopt:
-  interface_member_declaration.multiopt interface_member_declaration			
-| %empty			
+  interface_member_declaration.multiopt interface_member_declaration
+| %empty {copyData(&$$);}
 ;
 interface_member_declaration:
-  interface_method_declaration			
-| class_declaration			
-| interface_declaration			
-| TOK_59			
+  interface_method_declaration
+| class_declaration
+| interface_declaration
+| TOK_59
 ;
 interface_method_declaration:
-  modifier.multiopt method_header method_body			
+  modifier.multiopt method_header method_body
 ;
 
 	/* Arrays */
 
 array_initializer:
   TOK_123 variable_initializer_list.opt com.opt TOK_125		{
-          string s = string($1) + string($2->s) + string($4);
+          string s = string($1->s) + string($2->s) + string($4->s);
           copyData(&$$, s, "", s);
-        }	
+        }
 ;
 variable_initializer_list.opt:
-  variable_initializer_list			
-| %empty			
+  variable_initializer_list
+| %empty {copyData(&$$);}
 ;
 variable_initializer_list:
   variable_initializer com_variable_initializer.multiopt	{
@@ -1045,81 +1048,81 @@ com_variable_initializer.multiopt:
   com_variable_initializer.multiopt TOK_44 variable_initializer	{
           string s = string($1->s) + "," + string($3->s);
           copyData(&$$, s, "", s);
-        }	
-| %empty	{ copyData(&$$, "", "", ""); }
+        }
+| %empty {copyData(&$$);}
 ;
 
 	/* Blocks, statements, and patterns */
 
 block:
-  TOK_123 { createTable(); } block_statements.opt { cur_table_idx = symbol_table[cur_table_idx].parent; } TOK_125	
+  TOK_123 { createTable(); } block_statements.opt { cur_table_idx = symbol_table[cur_table_idx].parent; } TOK_125
 ;
 block_statements:
-  block_statement block_statement.multiopt			
+  block_statement block_statement.multiopt
 ;
 block_statement.multiopt:
-  block_statement.multiopt block_statement			
-| %empty			
+  block_statement.multiopt block_statement
+| %empty {copyData(&$$);}
 ;
 block_statement:
-  local_class_or_interface_declaration			
-|  local_variable_declaration_statement			
-| statement			
+  local_class_or_interface_declaration
+|  local_variable_declaration_statement
+| statement
 ;
 local_class_or_interface_declaration:
-  class_declaration			
-| normal_interface_declaration			
+  class_declaration
+| normal_interface_declaration
 ;
 local_variable_declaration_statement:
-  local_variable_declaration TOK_59			
+  local_variable_declaration TOK_59
 ;
 local_variable_declaration:
-  local_variable_type variable_declarator_list			
+  local_variable_type variable_declarator_list
 ;
 local_variable_type:
-  type			
-| TOK_var			
+  type
+| TOK_var
 ;
 statement:
-  statement_without_trailing_substatement			
-| labeled_statement			
-| if_then_statement			
-| if_then_else_statement			
+  statement_without_trailing_substatement
+| labeled_statement
+| if_then_statement
+| if_then_else_statement
 | while_statement
 | for_statement
 ;
 statement_without_trailing_substatement:
-  block			
-| empty_statement			
-| expression_statement			
-| assert_statement			
-| switch_statement			
-| do_statement			
-| break_statement			
-| continue_statement			
-| return_statement			
-| synchronized_statement			
-| throw_statement			
-| try_statement			
-| yield_statement			
+  block
+| empty_statement
+| expression_statement
+| assert_statement
+| switch_statement
+| do_statement
+| break_statement
+| continue_statement
+| return_statement
+| synchronized_statement
+| throw_statement
+| try_statement
+| yield_statement
 ;
 empty_statement:
-  TOK_59			
+  TOK_59
 ;
 labeled_statement:
-  TOK_IDENTIFIER TOK_58 statement					
+  TOK_IDENTIFIER TOK_58 statement
 ;
 expression_statement:
   statement_expression TOK_59
 ;
 statement_expression:
-  assignment			
-| pre_increment_expression			
-| pre_decrement_expression			
-| post_increment_expression			
-| post_decrement_expression			
-| method_invocation			
-| class_instance_creation_expression			
+  assignment
+| pre_increment_expression
+| pre_decrement_expression
+| post_increment_expression
+| post_decrement_expression
+| method_invocation
+| class_instance_creation_expression
 ;
 if_then_statement:
   if_condition statement {
@@ -1147,14 +1150,14 @@ if_condition:
         }
 ;
 assert_statement:
-  TOK_assert expression TOK_59			
-| TOK_assert expression TOK_58 expression TOK_59			
+  TOK_assert expression TOK_59
+| TOK_assert expression TOK_58 expression TOK_59
 ;
 switch_statement:
-  TOK_switch TOK_40 expression TOK_41 switch_block			
+  TOK_switch TOK_40 expression TOK_41 switch_block
 ;
 switch_block:
-  TOK_123 switch_rule.multi TOK_125			{ 
+  TOK_123 switch_rule.multi TOK_125			{
           copyData(&$$, "{" + string($2->s) + "}", $2->type);
         }
 | TOK_123 switch_block_statement_group.multiopt switch_label_col.multiopt TOK_125	 {
@@ -1173,17 +1176,13 @@ switch_block_statement_group.multiopt:
           copyData(&$$, string($1->s) + string($2->s), $2->type);
           typeCheck($1->type, $2->type);
         }
-| %empty			{
-          copyData(&$$, "", "");
-        }
+| %empty {copyData(&$$);}
 ;
 switch_label_col.multiopt:
   switch_label_col.multiopt switch_label TOK_58	{
           copyData(&$$, string($1->s) + string($2->s) + ":", $2->type);
         }
-| %empty		  {
-          copyData(&$$, "", "");
-        }
+| %empty {copyData(&$$);}
 ;
 switch_rule:
   switch_label TOK_4562 expression TOK_59	 {
@@ -1199,7 +1198,7 @@ switch_rule:
 switch_block_statement_group:
   switch_label TOK_58 switch_label_col.multiopt block_statements	 {
           copyData(&$$, string($1->s) + ":" + string($3->s) + string($4->s), $3->type);
-        }	
+        }
 ;
 switch_label:
   TOK_case case_constant com_case_constant.multiopt	 {
@@ -1212,10 +1211,8 @@ switch_label:
 com_case_constant.multiopt:
   com_case_constant.multiopt TOK_44 case_constant	  {
           copyData(&$$, string($1->s) + ", " + string($3->s), $3->type);
-        }	
-| %empty		  {
-          copyData(&$$, "", "");
         }
+| %empty {copyData(&$$);}
 ;
 case_constant:
   conditional_expression
@@ -1265,12 +1262,12 @@ for_statement:
           createTable();
           checkAndPushInstruction("label", "_", "_", "L" + to_string(label_count));
           label_stack.push(label_count++);
-        } expression.opt[expr] { 
+        } expression.opt[expr] {
           if (string($expr->s) != "") {
             specificTypeCheck($expr->type, "boolean", "condition");
             string v = storeTemp("!", $expr->v);
             checkAndPushInstruction("if goto", v, "_", "L" + to_string(label_count));
-          } 
+          }
           loop_exit.push(label_count);
           label_stack.push(label_count++);
           addToTemp = true;
@@ -1278,7 +1275,7 @@ for_statement:
           temp_code.push(temp);
           pushInstruction("label", "_", "_", "L" + to_string(label_count));
           loop_entry.push(label_count++);
-        } TOK_59 for_update.opt TOK_41 statement { 
+        } TOK_59 for_update.opt TOK_41 statement {
           pushTempCode();
           int label1 = label_stack.top();
           label_stack.pop();
@@ -1294,7 +1291,7 @@ for_statement:
           createTable();
           checkAndPushInstruction("label", "_", "_", "L" + to_string(label_count));
           label_stack.push(label_count++);
-        } expression.opt[expr] { 
+        } expression.opt[expr] {
           if (string($expr->s) != "") {
             specificTypeCheck($expr->type, "boolean", "condition");
             string v = storeTemp("!", $expr->v);
@@ -1307,7 +1304,7 @@ for_statement:
           temp_code.push(temp);
           pushInstruction("label", "_", "_", "L" + to_string(label_count));
           loop_entry.push(label_count++);
-        } TOK_59 for_update.opt TOK_41 statement { 
+        } TOK_59 for_update.opt TOK_41 statement {
           pushTempCode();
           int label1 = label_stack.top();
           label_stack.pop();
@@ -1327,7 +1324,7 @@ basic_for_init:
         }
 ;
 basic_for_tail:
-  TOK_59 expression.opt[expr] { 
+  TOK_59 expression.opt[expr] {
           if (string($expr->s) != "") {
             specificTypeCheck($expr->type, "boolean", "condition");
             string v = storeTemp("!", $expr->v);
@@ -1360,24 +1357,24 @@ enhanced_for_tail:
 ;
 expression.opt:
   expression
-| %empty			  { copyData(&$$, "", "void", ""); }
+| %empty {copyData(&$$);}
 ;
 for_update.opt:
   for_update		{ addToTemp = false; }
-| %empty			  { copyData(&$$, "", ""); addToTemp = false; }
+| %empty {copyData(&$$);addToTemp = false;}
 ;
 for_update:
-  statement_expression_list			
+  statement_expression_list
 ;
 statement_expression_list:
-  statement_expression com_statement_expression.multiopt			
+  statement_expression com_statement_expression.multiopt
 ;
 com_statement_expression.multiopt:
-  com_statement_expression.multiopt TOK_44 statement_expression			
-| %empty			  { copyData(&$$, "", ""); }
+  com_statement_expression.multiopt TOK_44 statement_expression
+| %empty {copyData(&$$);}
 ;
 break_statement:
-  TOK_break IDENTIFIER.opt TOK_59	 { 
+  TOK_break IDENTIFIER.opt TOK_59	 {
           if (loop_exit.empty()) {
             cout << "Error in line no " << yylineno << ": break statement outside loop" << endl;
           }
@@ -1385,11 +1382,11 @@ break_statement:
         }
 ;
 IDENTIFIER.opt:
-  TOK_IDENTIFIER			
-| %empty		      { copyData(&$$, "", ""); }
+  TOK_IDENTIFIER
+| %empty {copyData(&$$);}
 ;
 yield_statement:
-  TOK_yield expression TOK_59			
+  TOK_yield expression TOK_59
 ;
 continue_statement:
   TOK_continue IDENTIFIER.opt TOK_59 {
@@ -1397,7 +1394,7 @@ continue_statement:
             cout << "Error in line no " << yylineno << ": continue statement outside loop" << endl;
           }
           pushInstruction("goto", "_", "_", "L" + to_string(loop_entry.top()));
-        }	
+        }
 ;
 return_statement:
   TOK_return expression.opt TOK_59 {
@@ -1406,142 +1403,142 @@ return_statement:
         }
 ;
 throw_statement:
-  TOK_throw expression TOK_59			
+  TOK_throw expression TOK_59
 ;
 synchronized_statement:
-  TOK_synchronized TOK_40 expression TOK_41 block			
+  TOK_synchronized TOK_40 expression TOK_41 block
 ;
 try_statement:
-  TOK_try block catches			
-| TOK_try block catches.opt finally			
-| try_with_resources_statement			
+  TOK_try block catches
+| TOK_try block catches.opt finally
+| try_with_resources_statement
 ;
 catches.opt:
-  catches			
-| %empty			
+  catches
+| %empty {copyData(&$$);}
 ;
 catches:
-  catch_clause catch_clause.multiopt			
+  catch_clause catch_clause.multiopt
 ;
 catch_clause.multiopt:
-  catch_clause.multiopt catch_clause			
-| %empty			
+  catch_clause.multiopt catch_clause
+| %empty {copyData(&$$);}
 ;
 catch_clause:
-  TOK_catch TOK_40 catch_formal_parameter TOK_41 block			
+  TOK_catch TOK_40 catch_formal_parameter TOK_41 block
 ;
 catch_formal_parameter:
-  modifier.multiopt catch_type variable_declarator_id			
+  modifier.multiopt catch_type variable_declarator_id
 ;
 catch_type:
-  class_or_interface_type vt_class_type.multiopt			
+  class_or_interface_type vt_class_type.multiopt
 ;
 vt_class_type.multiopt:
-  vt_class_type.multiopt TOK_124 class_or_interface_type			
-| %empty			
+  vt_class_type.multiopt TOK_124 class_or_interface_type
+| %empty {copyData(&$$);}
 ;
 finally:
-  TOK_finally block			
+  TOK_finally block
 ;
 try_with_resources_statement:
-  TOK_try resource_specification block catches.opt finally.opt			
+  TOK_try resource_specification block catches.opt finally.opt
 ;
 finally.opt:
-  finally			
-| %empty			
+  finally
+| %empty {copyData(&$$);}
 ;
 resource_specification:
-  TOK_40 resource_list semcol.opt TOK_41			
+  TOK_40 resource_list semcol.opt TOK_41
 ;
 semcol.opt:
-  TOK_59			
-| %empty			
+  TOK_59
+| %empty {copyData(&$$);}
 ;
 resource_list:
-  resource semcol_resource.multiopt			
+  resource semcol_resource.multiopt
 ;
 semcol_resource.multiopt:
-  semcol_resource.multiopt TOK_59 resource			
-| %empty			
+  semcol_resource.multiopt TOK_59 resource
+| %empty {copyData(&$$);}
 ;
 resource:
-  local_variable_declaration			
-| variable_access			
+  local_variable_declaration
+| variable_access
 ;
 variable_access:
-  un_name			
-| field_access			
+  un_name
+| field_access
 ;
 pattern:
-  type_pattern			
+  type_pattern
 ;
 type_pattern:
-  local_variable_declaration			
+  local_variable_declaration
 
 
 	/* expressions */
 
 primary:
   primary_no_new_array
-| array_creation_expression			
+| array_creation_expression
 ;
 primary_no_new_array:
   hold_Literal
-| TOK_this			                { 
-          copyData(&$$, $1, "this", "this");
+| TOK_this			                {
+          copyData(&$$, $1->s, "this", "this");
           /* TODO: get type from class name */
         }
 | un_name TOK_46 TOK_this			  {
           copyData(&$$, string($1->s) + ".this", "this");
           /* TODO: get type from class name */
         }
-| TOK_40 expression TOK_41    %prec PARENTHESES   { 
+| TOK_40 expression TOK_41    %prec PARENTHESES   {
           copyData(&$$, $2->s, $2->type);
         }
 | class_instance_creation_expression
-| field_access			            
-| array_access		              
-| method_invocation			        
-| method_reference			        
+| field_access
+| array_access
+| method_invocation
+| method_reference
 ;
 hold_Literal:
-  TOK_INTEGERLITERAL      { copyData(&$$, $1, "int", $1); }
-| TOK_FLOATLITERAL        { copyData(&$$, $1, "float", $1); }
-| TOK_BOOLEANLITERAL      { copyData(&$$, $1, "boolean", $1); }
-| TOK_CHARLITERAL         { copyData(&$$, $1, "char", $1); }
-| TOK_STRINGLITERAL       { copyData(&$$, $1, "String", $1); }
-| TOK_TEXTBLOCKLITERAL    { copyData(&$$, $1, "TextBlock", $1); }
-| TOK_NULLLITERAL         { copyData(&$$, $1, "null", $1); }
+  TOK_INTEGERLITERAL      { copyData(&$$, $1->s, "int", $1->s); }
+| TOK_FLOATLITERAL        { copyData(&$$, $1->s, "float", $1->s); }
+| TOK_BOOLEANLITERAL      { copyData(&$$, $1->s, "boolean", $1->s); }
+| TOK_CHARLITERAL         { copyData(&$$, $1->s, "char", $1->s); }
+| TOK_STRINGLITERAL       { copyData(&$$, $1->s, "String", $1->s); }
+| TOK_TEXTBLOCKLITERAL    { copyData(&$$, $1->s, "TextBlock", $1->s); }
+| TOK_NULLLITERAL         { copyData(&$$, $1->s, "null", $1->s); }
 ;
 class_instance_creation_expression:
-  unqualified_class_instance_creation_expression	
-| un_name TOK_46 unqualified_class_instance_creation_expression	{ 
+  unqualified_class_instance_creation_expression
+| un_name TOK_46 unqualified_class_instance_creation_expression	{
           copyData(&$$, string($1->s) + "." + string($3->s), $3->type);
           // TODO: get type from class name
         }
-| primary TOK_46 unqualified_class_instance_creation_expression	{ 
+| primary TOK_46 unqualified_class_instance_creation_expression	{
           copyData(&$$, string($1->s) + "." + string($3->s), $3->type);
           // TODO: get type from class name
         }
 ;
 unqualified_class_instance_creation_expression:
   TOK_new class_or_interface_type TOK_40 argument_list.opt TOK_41 class_body.opt {
-          copyData(&$$, string($2) + "(" + string($4->s) + ")", $2);
+          copyData(&$$, string($2->s) + "(" + string($4->s) + ")", $2->s);
         }
 ;
 field_access:
-  primary TOK_46 TOK_IDENTIFIER	{ 
-          string s = string($1->s) + "." + string($3);
+  primary TOK_46 TOK_IDENTIFIER	{
+          string s = string($1->s) + "." + string($3->s);
           string type = getFieldVariableType(s);
           copyData(&$$, s, type, s);
           // TODO: get type
         }
-| TOK_super TOK_46 TOK_IDENTIFIER	{ 
-          copyData(&$$, "super." + string($3), "");
+| TOK_super TOK_46 TOK_IDENTIFIER	{
+          copyData(&$$, "super." + string($3->s), "");
           // TODO: get type
         }
-| un_name TOK_46 TOK_super TOK_46 TOK_IDENTIFIER  { 
-          copyData(&$$, string($1->s) + ".super." + string($3), "");
+| un_name TOK_46 TOK_super TOK_46 TOK_IDENTIFIER  {
+          copyData(&$$, string($1->s) + ".super." + string($3->s), "");
           // TODO: get type
         }
 ;
@@ -1570,7 +1567,7 @@ array_access:
         }
 ;
 method_invocation:
-  un_name TOK_40 argument_list.opt TOK_41	  { 
+  un_name TOK_40 argument_list.opt TOK_41	  {
           // check no. of arguments and their type
           int arg_cnt = checkMethodArgs($1->s, $3->s);
           string v = "";
@@ -1580,24 +1577,24 @@ method_invocation:
             v = storeTemp("call", $1->s, to_string(arg_cnt));
           copyData(&$$, string($1->s) + "(" + string($3->s) + ")", $1->type, v);
         }
-| primary TOK_46 TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 { 
-          copyData(&$$, string($1->s) + "." + string($3) + "(" + string($5->s) + ")", "");
+| primary TOK_46 TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
+          copyData(&$$, string($1->s) + "." + string($3->s) + "(" + string($5->s) + ")", "");
           // TODO: get type
         }
-| TOK_super TOK_46  TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 { 
-          copyData(&$$, "super." + string($3) + "(" + string($5->s) + ")", "");
+| TOK_super TOK_46  TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
+          copyData(&$$, "super." + string($3->s) + "(" + string($5->s) + ")", "");
           // TODO: get type
         }
 | un_name TOK_46 TOK_super TOK_46 TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
-          copyData(&$$, string($1->s) + ".super." + string($5) + "(" + string($7->s) + ")", "");
+          copyData(&$$, string($1->s) + ".super." + string($5->s) + "(" + string($7->s) + ")", "");
           // TODO: get type
         }
 ;
 argument_list.opt:
-  argument_list   { 
+  argument_list   {
           copyData(&$$, $1->s, $1->type);
         }
-| %empty			    { copyData(&$$, "", ""); }
+| %empty {copyData(&$$);}
 ;
 argument_list:
   expression com_expression.multiopt   {
@@ -1610,59 +1607,59 @@ com_expression.multiopt:
           pushInstruction("param", $3->v, "_", "_");
           copyData(&$$, string($1->s) + "," + string($3->type), $1->type);
         }
-| %empty	            { copyData(&$$, "", ""); }
+| %empty {copyData(&$$);}
 ;
 method_reference:
   un_name TOK_5858 TOK_IDENTIFIER			              {
-          copyData(&$$, string($1->s) + "::" + string($3), "");
+          copyData(&$$, string($1->s) + "::" + string($3->s), "");
         }
 | primary TOK_5858 TOK_IDENTIFIER                   {
-          copyData(&$$, string($1->s) + "::" + string($3), "");
+          copyData(&$$, string($1->s) + "::" + string($3->s), "");
         }
 | TOK_super TOK_5858 TOK_IDENTIFIER 	              {
-          copyData(&$$, "super::" + string($3), "");
+          copyData(&$$, "super::" + string($3->s), "");
         }
 | un_name TOK_46 TOK_super TOK_5858 TOK_IDENTIFIER 	{
-          copyData(&$$, string($1->s) + ".super::" + string($5), "");
+          copyData(&$$, string($1->s) + ".super::" + string($5->s), "");
         }
 ;
 array_creation_expression:
-  TOK_new primitive_type dim_exprs dims.opt               { 
-          string type = string($2) + string($3->type) + string($4);
-          string s = "new " + string($2) + string($3->s) + string($4);
+  TOK_new primitive_type dim_exprs dims.opt               {
+          string type = string($2->s) + string($3->type) + string($4->s);
+          string s = "new " + string($2->s) + string($3->s) + string($4->s);
           copyData(&$$, s, type, $3->s);
         }
-| TOK_new class_or_interface_type dim_exprs dims.opt      { 
-          string type = string($2) + string($3->type) + string($4);
-          string s = "new " + string($2) + string($3->s) + string($4);
+| TOK_new class_or_interface_type dim_exprs dims.opt      {
+          string type = string($2->s) + string($3->type) + string($4->s);
+          string s = "new " + string($2->s) + string($3->s) + string($4->s);
           copyData(&$$, s, type, $3->s);
         }
-| TOK_new primitive_type dims array_initializer	          { 
-          string type = string($2) + string($3);
-          string s = "new " + string($2) + string($3) + string($4->s);
-          copyData(&$$, s, type, $4->s); 
+| TOK_new primitive_type dims array_initializer	          {
+          string type = string($2->s) + string($3->s);
+          string s = "new " + string($2->s) + string($3->s) + string($4->s);
+          copyData(&$$, s, type, $4->s);
         }
-| TOK_new class_or_interface_type dims array_initializer 	{ 
-          string type = string($2) + string($3);
-          string s = "new " + string($2) + string($3) + string($4->s);
-          copyData(&$$, s, type, $4->s); 
+| TOK_new class_or_interface_type dims array_initializer 	{
+          string type = string($2->s) + string($3->s);
+          string s = "new " + string($2->s) + string($3->s) + string($4->s);
+          copyData(&$$, s, type, $4->s);
         }
 ;
 dim_exprs:
-  dim_expr dim_expr.multiopt { 
+  dim_expr dim_expr.multiopt {
           string s = string($1->s) + string($2->s);
           copyData(&$$, s, string($1->type) + string($2->type), s);
         }
 ;
 dim_expr.multiopt:
-  dim_expr.multiopt dim_expr  { 
+  dim_expr.multiopt dim_expr  {
           string s = string($1->s) + string($2->s);
           copyData(&$$, s, string($1->type) + string($2->type), s);
         }
-| %empty			                { copyData(&$$, "", ""); }
+| %empty {copyData(&$$);}
 ;
 dim_expr:
-   TOK_91 expression TOK_93 { 
+   TOK_91 expression TOK_93 {
           string s = "[" + string($2->s) + "]";
           copyData(&$$, s, "[]", s);
         }
@@ -1671,24 +1668,24 @@ expression:
   assignment_expression
 ;
 assignment_expression:
-  conditional_expression 
-| assignment			       
+  conditional_expression
+| assignment
 ;
 assignment:
   left_hand_side assignment_operator expression   {
-          if (string($2) == "=") {
+          if (string($2->s) == "=") {
             pushInstruction("_", $3->v, "_", $1->v);
           } else {
-            string op = string($2);
+            string op = string($2->s);
             pushInstruction(op.substr(0,op.size()-1), $1->v, $3->v, $1->v);
           }
-          copyData(&$$, string($1->s) + string($2) + string($3->s), $1->type, $1->v);
+          copyData(&$$, string($1->s) + string($2->s) + string($3->s), $1->type, $1->v);
           typeCheck($1->type, $3->type);
         }
 ;
 left_hand_side:
   un_name
-| field_access		
+| field_access
 | array_access		{
           string s = string($1->s);
           string a1 = "", a2 = "";
@@ -1711,20 +1708,20 @@ left_hand_side:
 ;
 assignment_operator:
   TOK_61
-| TOK_4261			
-| TOK_4761			
-| TOK_3761			
-| TOK_4361			
-| TOK_4561			
-| TOK_606061			
-| TOK_626261			
-| TOK_62626261			
-| TOK_3861			
-| TOK_9461			
-| TOK_12461			
+| TOK_4261
+| TOK_4761
+| TOK_3761
+| TOK_4361
+| TOK_4561
+| TOK_606061
+| TOK_626261
+| TOK_62626261
+| TOK_3861
+| TOK_9461
+| TOK_12461
 ;
 conditional_expression:
-  conditional_or_expression	 
+  conditional_or_expression
 | conditional_or_expression TOK_63 expression TOK_58 conditional_expression	 %prec TERNARY {
           // 3AC?
           copyData(&$$, string($1->s) + " ? " + string($3->s) + " : " + string($5->s), $3->type);
@@ -1733,7 +1730,7 @@ conditional_expression:
         }
 ;
 conditional_or_expression:
-  conditional_and_expression	
+  conditional_and_expression
 | conditional_or_expression TOK_124124 conditional_and_expression {
           string v = storeTemp("||", $1->v, $3->v);
           copyData(&$$, string($1->s) + " || " + string($3->s), "boolean", v);
@@ -1742,7 +1739,7 @@ conditional_or_expression:
         }
 ;
 conditional_and_expression:
-  inclusive_or_expression		  
+  inclusive_or_expression
 | conditional_and_expression TOK_3838 inclusive_or_expression	 {
           string v = storeTemp("&&", $1->v, $3->v);
           copyData(&$$, string($1->s) + " && " + string($3->s), "boolean", v);
@@ -1751,7 +1748,7 @@ conditional_and_expression:
         }
 ;
 inclusive_or_expression:
-  exclusive_or_expression		  
+  exclusive_or_expression
 | inclusive_or_expression TOK_124 exclusive_or_expression	 {
           string v = storeTemp("|", $1->v, $3->v);
           copyData(&$$, string($1->s) + " | " + string($3->s), "int", v);
@@ -1760,7 +1757,7 @@ inclusive_or_expression:
         }
 ;
 exclusive_or_expression:
-  and_expression			        
+  and_expression
 | exclusive_or_expression TOK_94 and_expression  {
           string v = storeTemp("^", $1->v, $3->v);
           copyData(&$$, string($1->s) + " ^ " + string($3->s), "int", v);
@@ -1769,7 +1766,7 @@ exclusive_or_expression:
         }
 ;
 and_expression:
-  equality_expression         			
+  equality_expression
 | and_expression TOK_38 equality_expression	  {
           string v = storeTemp("&", $1->v, $3->v);
           copyData(&$$, string($1->s) + " & " + string($3->s), "int", v);
@@ -1778,7 +1775,7 @@ and_expression:
         }
 ;
 equality_expression:
-  relational_expression			  
+  relational_expression
 | equality_expression TOK_6161 relational_expression 	  {
           string v = storeTemp("==", $1->v, $3->v);
           copyData(&$$, string($1->s) + " == " + string($3->s), "boolean", v);
@@ -1791,7 +1788,7 @@ equality_expression:
         }
 ;
 relational_expression:
-  shift_expression          
+  shift_expression
 | relational_expression TOK_60 shift_expression {
           string v = storeTemp("<", $1->v, $3->v);
           copyData(&$$, string($1->s) + " < " + string($3->s), "boolean", v);
@@ -1812,14 +1809,14 @@ relational_expression:
           copyData(&$$, string($1->s) + " >= " + string($3->s), "boolean", v);
           typeCheck($1->type, $3->type);
         }
-| instanceof_expression		
+| instanceof_expression
 ;
 instanceof_expression:
   relational_expression TOK_instanceof reference_type	{
-          string v = storeTemp("instanceof", $1->v, $3);
-          copyData(&$$, string($1->s) + " instanceof " + string($3), "boolean", v);
+          string v = storeTemp("instanceof", $1->v, $3->s);
+          copyData(&$$, string($1->s) + " instanceof " + string($3->s), "boolean", v);
           specificTypeCheck($1->type, "reference", "instanceof");
-          specificTypeCheck($3, "class", "instanceof");
+          specificTypeCheck($3->s, "class", "instanceof");
         }
 | relational_expression TOK_instanceof pattern {
           string v = storeTemp("instanceof", $1->v, $3->v);
@@ -1829,7 +1826,7 @@ instanceof_expression:
         }
 ;
 shift_expression:
-  additive_expression      
+  additive_expression
 | shift_expression TOK_6060 additive_expression	 {
           string v = storeTemp("<<", $1->v, $3->v);
           copyData(&$$, string($1->s) + " << " + string($3->s), "int", v);
@@ -1850,7 +1847,7 @@ shift_expression:
         }
 ;
 additive_expression:
-  multiplicative_expression	 
+  multiplicative_expression
 | additive_expression TOK_43 multiplicative_expression {
           string v = storeTemp("+", $1->v, $3->v);
           copyData(&$$, string($1->s) + " + " + string($3->s), getFinalType($1->type, $3->type), v);
@@ -1865,7 +1862,7 @@ additive_expression:
         }
 ;
 multiplicative_expression:
-  unary_expression			  
+  unary_expression
 | multiplicative_expression TOK_42 unary_expression	{
           string v = storeTemp("*", $1->v, $3->v);
           copyData(&$$, string($1->s) + " * " + string($3->s), getFinalType($1->type, $3->type), v);
@@ -1886,8 +1883,8 @@ multiplicative_expression:
         }
 ;
 unary_expression:
-  pre_increment_expression  
-| pre_decrement_expression  
+  pre_increment_expression
+| pre_decrement_expression
 | TOK_43 unary_expression	  %prec UPLUS     {
           string v = storeTemp("+", $2->v);
           copyData(&$$, " + " + string($2->s), $2->type, v);
@@ -1898,7 +1895,7 @@ unary_expression:
           copyData(&$$, " + " + string($2->s), $2->type, v);
           specificTypeCheck($2->type, "Numeric", "-");
         }
-| unary_expression_not_plus_minus	
+| unary_expression_not_plus_minus
 ;
 pre_increment_expression:
   TOK_4343 unary_expression   %prec PREINC  {
@@ -1915,7 +1912,7 @@ pre_decrement_expression:
         }
 ;
 unary_expression_not_plus_minus:
-  postfix_expression	
+  postfix_expression
 | TOK_126 unary_expression 	    {
           string v = storeTemp("~", $2->v);
           copyData(&$$, "~" + string($2->s), $2->type, v);
@@ -1926,14 +1923,14 @@ unary_expression_not_plus_minus:
           copyData(&$$, "!" + string($2->s), $2->type, v);
           specificTypeCheck($2->type, "boolean", "!");
         }
-| cast_expression		 
-| switch_expression	 
+| cast_expression
+| switch_expression
 ;
 postfix_expression:
-  primary	                    
-| un_name                     
-| post_increment_expression	  
-| post_decrement_expression	  
+  primary
+| un_name
+| post_increment_expression
+| post_decrement_expression
 ;
 post_increment_expression:
   postfix_expression TOK_4343	  %prec POSTINC {
@@ -1953,9 +1950,9 @@ post_decrement_expression:
 ;
 cast_expression:
   TOK_40 primitive_type TOK_41 unary_expression	  %prec CAST  {
-          string v = storeTemp("(" + string($2) + ")", $4->v);
-          copyData(&$$, "(" + string($2) + ")" + string($4->s), $2, v);
-          if (string($2) == "boolean") {
+          string v = storeTemp("(" + string($2->s) + ")", $4->v);
+          copyData(&$$, "(" + string($2->s) + ")" + string($4->s), $2->s, v);
+          if (string($2->s) == "boolean") {
             specificTypeCheck($4->type, "boolean", "cast");
           } else {
             specificTypeCheck($4->type, "Numeric", "cast");
@@ -2108,18 +2105,18 @@ void specificTypeCheck(string type, string target, string op = "") {
     if (t1 != 1 && t1 != 2) {
       if (op == "")
         cout << "Error at line no " << yylineno << ": Type mismatch between " << type << " and " << target << endl;
-      else 
+      else
         cout << "Error at line no " << yylineno << ": Incompatible operator " << op << " with operand of type " << type << endl;
     }
   } else {
-    if (t1 != t2) {      
+    if (t1 != t2) {
       if (op == "")
         cout << "Error at line no " << yylineno << ": Type mismatch between " << type << " and " << target << endl;
       else if (op == "array index")
         cout << "Error at line no " << yylineno << ": Array index must be of type int, found " << type << endl;
       else if (op == "condition")
         cout << "Error at line no " << yylineno << ": Condition must be of type boolean, found " << type << endl;
-      else 
+      else
         cout << "Error at line no " << yylineno << ": Incompatible operator " << op << " with operand of type " << type << endl;
     }
   }
@@ -2389,7 +2386,7 @@ void optimizeTAC() {
         int k = j+1;
         if (k < tac_code[i].second.size() && tac_code[i].second[k][0] == "goto") {
           tac_code[i].second.erase(tac_code[i].second.begin()+k);
-        }  
+        }
       }
       if (tac_code[i].second[j][0] == "label") {
         int k = j+1;
@@ -2426,7 +2423,7 @@ void optimizeTAC() {
         j--;
       }
     }
-    
+
     // remove unused temporary variables
     unordered_set<string> usedTemp;
     for (int j = tac_code[i].second.size()-1; j >= 0; j--) {
