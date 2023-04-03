@@ -26,3 +26,5 @@ milestone3/src/*
 !milestone3/src/Makefile
 !milestone3/src/scanner.l
 !milestone3/src/myASTGenerator
+
+.vscode

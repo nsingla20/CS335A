@@ -109,117 +109,117 @@ Operator                    =|>|<|!|~|\?|\->|==|>=|<=|!=|&&|\|\||\+\+|\-\-|\+|\-
 {WhiteSpace}    {;}
 {Comment}       {;}
 
-"!"			{yylval->s=strdup(yytext);return TOK_33;}
-"!="			{yylval->s=strdup(yytext);return TOK_3361;}
-"%"			{yylval->s=strdup(yytext);return TOK_37;}
-"%="			{yylval->s=strdup(yytext);return TOK_3761;}
-"&"			{yylval->s=strdup(yytext);return TOK_38;}
-"&&"			{yylval->s=strdup(yytext);return TOK_3838;}
-"&="			{yylval->s=strdup(yytext);return TOK_3861;}
-"("			{yylval->s=strdup(yytext);return TOK_40;}
-")"			{yylval->s=strdup(yytext);return TOK_41;}
-"*"			{yylval->s=strdup(yytext);return TOK_42;}
-"*="			{yylval->s=strdup(yytext);return TOK_4261;}
-"+"			{yylval->s=strdup(yytext);return TOK_43;}
-"++"			{yylval->s=strdup(yytext);return TOK_4343;}
-"+="			{yylval->s=strdup(yytext);return TOK_4361;}
-","			{yylval->s=strdup(yytext);return TOK_44;}
-"-"			{yylval->s=strdup(yytext);return TOK_45;}
-"--"			{yylval->s=strdup(yytext);return TOK_4545;}
-"-="			{yylval->s=strdup(yytext);return TOK_4561;}
-"->"			{yylval->s=strdup(yytext);return TOK_4562;}
-"."			{yylval->s=strdup(yytext);return TOK_46;}
-"..."			{yylval->s=strdup(yytext);return TOK_464646;}
-"/"			{yylval->s=strdup(yytext);return TOK_47;}
-"/="			{yylval->s=strdup(yytext);return TOK_4761;}
-":"			{yylval->s=strdup(yytext);return TOK_58;}
-"::"			{yylval->s=strdup(yytext);return TOK_5858;}
-";"			{yylval->s=strdup(yytext);return TOK_59;}
-"<"			{yylval->s=strdup(yytext);return TOK_60;}
-"<<"			{yylval->s=strdup(yytext);return TOK_6060;}
-"<<="			{yylval->s=strdup(yytext);return TOK_606061;}
-"<="			{yylval->s=strdup(yytext);return TOK_6061;}
-"="			{yylval->s=strdup(yytext);return TOK_61;}
-"=="			{yylval->s=strdup(yytext);return TOK_6161;}
-">"			{yylval->s=strdup(yytext);return TOK_62;}
-">="			{yylval->s=strdup(yytext);return TOK_6261;}
-">>"			{yylval->s=strdup(yytext);return TOK_6262;}
-">>="			{yylval->s=strdup(yytext);return TOK_626261;}
-">>>"			{yylval->s=strdup(yytext);return TOK_626262;}
-">>>="			{yylval->s=strdup(yytext);return TOK_62626261;}
-"?"			{yylval->s=strdup(yytext);return TOK_63;}
-"["			{yylval->s=strdup(yytext);return TOK_91;}
-"]"			{yylval->s=strdup(yytext);return TOK_93;}
-"^"			{yylval->s=strdup(yytext);return TOK_94;}
-"^="			{yylval->s=strdup(yytext);return TOK_9461;}
-"abstract"			{yylval->s=strdup(yytext);return TOK_abstract;}
-"assert"			{yylval->s=strdup(yytext);return TOK_assert;}
-"boolean"			{yylval->s=strdup(yytext);return TOK_boolean;}
-"break"			{yylval->s=strdup(yytext);return TOK_break;}
-"byte"			{yylval->s=strdup(yytext);return TOK_byte;}
-"case"			{yylval->s=strdup(yytext);return TOK_case;}
-"catch"			{yylval->s=strdup(yytext);return TOK_catch;}
-"char"			{yylval->s=strdup(yytext);return TOK_char;}
-"class"			{yylval->s=strdup(yytext);return TOK_class;}
-"continue"			{yylval->s=strdup(yytext);return TOK_continue;}
-"default"			{yylval->s=strdup(yytext);return TOK_default;}
-"do"			{yylval->s=strdup(yytext);return TOK_do;}
-"double"			{yylval->s=strdup(yytext);return TOK_double;}
-"else"			{yylval->s=strdup(yytext);return TOK_else;}
-"enum"			{yylval->s=strdup(yytext);return TOK_enum;}
-"extends"			{yylval->s=strdup(yytext);return TOK_extends;}
-"final"			{yylval->s=strdup(yytext);return TOK_final;}
-"finally"			{yylval->s=strdup(yytext);return TOK_finally;}
-"float"			{yylval->s=strdup(yytext);return TOK_float;}
-"for"			{yylval->s=strdup(yytext);return TOK_for;}
-"if"			{yylval->s=strdup(yytext);return TOK_if;}
-"implements"			{yylval->s=strdup(yytext);return TOK_implements;}
-"import"			{yylval->s=strdup(yytext);return TOK_import;}
-"instanceof"			{yylval->s=strdup(yytext);return TOK_instanceof;}
-"int"			{yylval->s=strdup(yytext);return TOK_int;}
-"interface"			{yylval->s=strdup(yytext);return TOK_interface;}
-"long"			{yylval->s=strdup(yytext);return TOK_long;}
-"new"			{yylval->s=strdup(yytext);return TOK_new;}
-"package"			{yylval->s=strdup(yytext);return TOK_package;}
-"permits"			{yylval->s=strdup(yytext);return TOK_permits;}
-"private"			{yylval->s=strdup(yytext);return TOK_private;}
-"protected"			{yylval->s=strdup(yytext);return TOK_protected;}
-"public"			{yylval->s=strdup(yytext);return TOK_public;}
-"record"			{yylval->s=strdup(yytext);return TOK_record;}
-"return"			{yylval->s=strdup(yytext);return TOK_return;}
-"sealed"			{yylval->s=strdup(yytext);return TOK_sealed;}
-"short"			{yylval->s=strdup(yytext);return TOK_short;}
-"static"			{yylval->s=strdup(yytext);return TOK_static;}
-"strictfp"			{yylval->s=strdup(yytext);return TOK_strictfp;}
-"super"			{yylval->s=strdup(yytext);return TOK_super;}
-"switch"			{yylval->s=strdup(yytext);return TOK_switch;}
-"synchronized"			{yylval->s=strdup(yytext);return TOK_synchronized;}
-"this"			{yylval->s=strdup(yytext);return TOK_this;}
-"throw"			{yylval->s=strdup(yytext);return TOK_throw;}
-"throws"			{yylval->s=strdup(yytext);return TOK_throws;}
-"transient"			{yylval->s=strdup(yytext);return TOK_transient;}
-"transitive"			{yylval->s=strdup(yytext);return TOK_transitive;}
-"try"			{yylval->s=strdup(yytext);return TOK_try;}
-"var"			{yylval->s=strdup(yytext);return TOK_var;}
-"void"			{yylval->s=strdup(yytext);return TOK_void;}
-"volatile"			{yylval->s=strdup(yytext);return TOK_volatile;}
-"while"			{yylval->s=strdup(yytext);return TOK_while;}
-"yield"			{yylval->s=strdup(yytext);return TOK_yield;}
-"{"			{yylval->s=strdup(yytext);return TOK_123;}
-"|"			{yylval->s=strdup(yytext);return TOK_124;}
-"|="			{yylval->s=strdup(yytext);return TOK_12461;}
-"||"			{yylval->s=strdup(yytext);return TOK_124124;}
-"}"			{yylval->s=strdup(yytext);return TOK_125;}
-"~"			{yylval->s=strdup(yytext);return TOK_126;}
+"!"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_33;}
+"!="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_3361;}
+"%"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_37;}
+"%="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_3761;}
+"&"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_38;}
+"&&"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_3838;}
+"&="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_3861;}
+"("			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_40;}
+")"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_41;}
+"*"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_42;}
+"*="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4261;}
+"+"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_43;}
+"++"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4343;}
+"+="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4361;}
+","			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_44;}
+"-"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_45;}
+"--"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4545;}
+"-="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4561;}
+"->"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4562;}
+"."			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_46;}
+"..."			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_464646;}
+"/"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_47;}
+"/="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_4761;}
+":"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_58;}
+"::"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_5858;}
+";"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_59;}
+"<"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_60;}
+"<<"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_6060;}
+"<<="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_606061;}
+"<="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_6061;}
+"="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_61;}
+"=="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_6161;}
+">"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_62;}
+">="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_6261;}
+">>"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_6262;}
+">>="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_626261;}
+">>>"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_626262;}
+">>>="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_62626261;}
+"?"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_63;}
+"["			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_91;}
+"]"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_93;}
+"^"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_94;}
+"^="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_9461;}
+"abstract"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_abstract;}
+"assert"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_assert;}
+"boolean"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_boolean;}
+"break"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_break;}
+"byte"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_byte;}
+"case"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_case;}
+"catch"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_catch;}
+"char"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_char;}
+"class"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_class;}
+"continue"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_continue;}
+"default"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_default;}
+"do"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_do;}
+"double"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_double;}
+"else"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_else;}
+"enum"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_enum;}
+"extends"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_extends;}
+"final"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_final;}
+"finally"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_finally;}
+"float"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_float;}
+"for"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_for;}
+"if"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_if;}
+"implements"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_implements;}
+"import"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_import;}
+"instanceof"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_instanceof;}
+"int"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_int;}
+"interface"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_interface;}
+"long"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_long;}
+"new"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_new;}
+"package"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_package;}
+"permits"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_permits;}
+"private"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_private;}
+"protected"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_protected;}
+"public"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_public;}
+"record"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_record;}
+"return"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_return;}
+"sealed"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_sealed;}
+"short"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_short;}
+"static"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_static;}
+"strictfp"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_strictfp;}
+"super"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_super;}
+"switch"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_switch;}
+"synchronized"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_synchronized;}
+"this"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_this;}
+"throw"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_throw;}
+"throws"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_throws;}
+"transient"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_transient;}
+"transitive"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_transitive;}
+"try"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_try;}
+"var"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_var;}
+"void"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_void;}
+"volatile"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_volatile;}
+"while"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_while;}
+"yield"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_yield;}
+"{"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_123;}
+"|"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_124;}
+"|="			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_12461;}
+"||"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_124124;}
+"}"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_125;}
+"~"			{struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_126;}
 
-{IntegerLiteral}            {yylval->s=strdup(yytext);return TOK_INTEGERLITERAL;}
-{FloatingPointLiteral}      {yylval->s=strdup(yytext);return TOK_FLOATLITERAL;}
-{BooleanLiteral}            {yylval->s=strdup(yytext);return TOK_BOOLEANLITERAL;}
-{CharacterLiteral}          {yylval->s=strdup(yytext);return TOK_CHARLITERAL;}
-{StringLiteral}             {yylval->s=strdup(yytext);return TOK_STRINGLITERAL;}
-{TextBlock}                 {yylval->s=strdup(yytext);return TOK_TEXTBLOCKLITERAL;}
-{NullLiteral}               {yylval->s=strdup(yytext);return TOK_NULLLITERAL;}
-{Identifier}                {yylval->s=strdup(yytext);return TOK_IDENTIFIER;}
+{IntegerLiteral}            {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_INTEGERLITERAL;}
+{FloatingPointLiteral}      {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_FLOATLITERAL;}
+{BooleanLiteral}            {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_BOOLEANLITERAL;}
+{CharacterLiteral}          {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_CHARLITERAL;}
+{StringLiteral}             {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_STRINGLITERAL;}
+{TextBlock}                 {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_TEXTBLOCKLITERAL;}
+{NullLiteral}               {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_NULLLITERAL;}
+{Identifier}                {struct expr *tmp=(struct expr*)malloc(sizeof(*tmp));yylval->e=tmp;yylval->e->s=strdup(yytext);return TOK_IDENTIFIER;}
 .                           {;}
 %%
 
