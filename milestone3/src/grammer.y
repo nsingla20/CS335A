@@ -2429,7 +2429,8 @@ void optimizeTAC() {
     for (int j = tac_code[i].second.size()-1; j >= 0; j--) {
       string var = tac_code[i].second[j][3];
       if (var.size() >= 2 && var[0] == 't' && var[1] <= '9' &&
-          var[1] >= '0' && usedTemp.find(var) == usedTemp.end()) {
+          var[1] >= '0' && usedTemp.find(var) == usedTemp.end() &&
+          tac_code[i].second[j][0] != "call") {
         tac_code[i].second.erase(tac_code[i].second.begin()+j);
         continue;
       }
