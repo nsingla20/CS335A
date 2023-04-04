@@ -2336,9 +2336,9 @@ string call_procedure(struct expr* method_name, struct expr* args){
     pushInstruction("call", method_name->s, to_string(arg_cnt), "_");
   else{
     pushInstruction("call", method_name->s, to_string(arg_cnt), "_");
-    string v = "t" + to_string(tmp_count++);
-    pushInstruction("_", "0(stackptr)", "_", v);
-    // pushInstruction("+stackptr", to_string(ret_size), "_", "_");
+    v = "t" + to_string(tmp_count++);
+    pushInstruction("_", "+"+to_string(ret_size)+"(stackptr)", "_", v);
+    pushInstruction("+stackptr", to_string(ret_size), "_", "_");
   }
   return v;
 }
@@ -2559,7 +2559,19 @@ void dump3AC_post(ofstream &fout, int i, string ret){
       of+=size_map[ep->type];
     }
   }
-  fout<<"ebp = ";
+  int tmp=of;
+  string ret_type=methods[i].first;
+  if(size_map.find(ret_type)!=size_map.end()){
+    // cout<<ret_type;
+    of+=size_map[ret_type];
+  }
+  if(ret!=""){
+    fout<<"+"<<of<<"(ebp) = "<<ret<<endl<<"\t";
+  }
+  fout<<"stackptr = ebp - "<<tmp<<endl;
+  fout<<"\tebp = 0(ebp)"<<endl;
+  fout<<"\tret"<<endl;
+
 }
 
 void dump3AC() {
