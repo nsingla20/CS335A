@@ -775,6 +775,7 @@ variable_declarator:
               symbol_table[cur_table_idx].size -= base_size;
               symbol_table[cur_table_idx].table[symbol].size = sz*base_size;
               symbol_table[cur_table_idx].size += sz*base_size;
+              updateSize(sz*base_size - base_size);
             }
           }
         }
