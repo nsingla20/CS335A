@@ -117,6 +117,7 @@ unordered_set<string> split_modifiers(string);
 void insertSymbol(string, struct info *);
 void checkDeclaration(string);
 string lookupType(string);
+int lookupOffset(string);
 int getType(string);
 string getFinalType(string, string);
 void typeCheck(string, string);
@@ -128,7 +129,10 @@ int getArraySize(string);
 void copyString(char **, string);
 void copyData(struct expr **e, string s="", string type="", string v = "");
 string storeTemp(string op, string arg1, string arg2="_");
+string storeTempWithType(string, string, string, string, string);
 void pushInstruction(string, string, string, string);
+void pushInstructionWithType(string, string, string, string, string, string);
+void popLastInstruction();
 void checkAndPushInstruction(string, string, string, string, int mode=0);
 void pushTempCode();
 string call_procedure(struct expr*,struct expr*);
@@ -594,7 +598,11 @@ un_name:
           string type = lookupType(string($1->s));
           if (type == "")
             type = "unknown type";
-          copyData(&$$, string($1->s), type, $1->s);
+          int offset = lookupOffset(string($1->s));
+          // string v1 = storeTemp("getOffset(" + string($1->s) + ")", "", "_");
+          // string v2 = storeTemp("* rhs", "ebp", v1);
+          string v2 = storeTemp("* rhs", "ebp", to_string(offset));
+          copyData(&$$, string($1->s), type, v2);
         }
 | un_name TOK_46 TOK_IDENTIFIER     {
           string s = string($1->s) + "." + string($3->s);
@@ -780,6 +788,8 @@ variable_declarator_id:
                   struct info cur_info = createInfo(type, "variable", cur_size, offset, yylineno, modifiers);
                   insertSymbol($1->s, &cur_info);
                   symbol_table[cur_table_idx].size += cur_size;
+                  pushInstruction("param", to_string(cur_size), "_", "");
+                  pushInstruction("call", "allocmem", "1", "_");
                 }
               }
 ;
@@ -1705,18 +1715,24 @@ assignment_expression:
 ;
 assignment:
   left_hand_side assignment_operator expression   {
-          if (string($2->s) == "=") {
-            pushInstruction("_", $3->v, "_", $1->v);
+          string op = string($2->s);
+          if (op == "=") {
+            pushInstructionWithType("_", $3->v, "_", $1->v, $1->type, $3->type);
           } else {
-            string op = string($2->s);
-            pushInstruction(op.substr(0,op.size()-1), $1->v, $3->v, $1->v);
+            string v = storeTempWithType(op.substr(0,op.size()-1), $1->v, $3->v, $1->type, $3->type);
+            pushInstructionWithType("_", v, "_", $1->v, $3->type, $1->type);
           }
           copyData(&$$, string($1->s) + string($2->s) + string($3->s), $1->type, $1->v);
           typeCheck($1->type, $3->type);
         }
 ;
 left_hand_side:
-  un_name
+  un_name  {
+          string offset = to_string(lookupOffset(string($1->s)));
+          string v = "*(ebp + " + offset + ")";
+          copyData(&$$, string($1->s), $1->type, v);
+          popLastInstruction();
+        }
 | field_access
 | array_access		{
           string s = string($1->s);
@@ -1881,13 +1897,13 @@ shift_expression:
 additive_expression:
   multiplicative_expression
 | additive_expression TOK_43 multiplicative_expression {
-          string v = storeTemp("+", $1->v, $3->v);
+          string v = storeTempWithType("+", $1->v, $3->v, $1->type, $3->type);
           copyData(&$$, string($1->s) + " + " + string($3->s), getFinalType($1->type, $3->type), v);
           specificTypeCheck($1->type, "Numeric", "+");
           specificTypeCheck($3->type, "Numeric", "+");
         }
 | additive_expression TOK_45 multiplicative_expression {
-          string v = storeTemp("-", $1->v, $3->v);
+          string v = storeTempWithType("-", $1->v, $3->v, $1->type, $3->type);
           copyData(&$$, string($1->s) + " - " + string($3->s), getFinalType($1->type, $3->type), v);
           specificTypeCheck($1->type, "Numeric", "-");
           specificTypeCheck($3->type, "Numeric", "-");
@@ -1896,13 +1912,13 @@ additive_expression:
 multiplicative_expression:
   unary_expression
 | multiplicative_expression TOK_42 unary_expression	{
-          string v = storeTemp("*", $1->v, $3->v);
+          string v = storeTempWithType("*", $1->v, $3->v, $1->type, $3->type);
           copyData(&$$, string($1->s) + " * " + string($3->s), getFinalType($1->type, $3->type), v);
           specificTypeCheck($1->type, "Numeric", "*");
           specificTypeCheck($3->type, "Numeric", "*");
         }
 | multiplicative_expression TOK_47 unary_expression	{
-          string v = storeTemp("/", $1->v, $3->v);
+          string v = storeTempWithType("/", $1->v, $3->v, $1->type, $3->type);
           copyData(&$$, string($1->s) + " / " + string($3->s), getFinalType($1->type, $3->type), v);
           specificTypeCheck($1->type, "Numeric", "/");
           specificTypeCheck($3->type, "Numeric", "/");
@@ -1910,8 +1926,8 @@ multiplicative_expression:
 | multiplicative_expression TOK_37 unary_expression	{
           string v = storeTemp("%", $1->v, $3->v);
           copyData(&$$, string($1->s) + " % " + string($3->s), getFinalType($1->type, $3->type), v);
-          specificTypeCheck($1->type, "Numeric", "%");
-          specificTypeCheck($3->type, "Numeric", "%");
+          specificTypeCheck($1->type, "int", "%");
+          specificTypeCheck($3->type, "int", "%");
         }
 ;
 unary_expression:
@@ -1931,14 +1947,14 @@ unary_expression:
 ;
 pre_increment_expression:
   TOK_4343 unary_expression   %prec PREINC  {
-          pushInstruction("+", $2->v, "1", $2->v);
+          pushInstructionWithType("+", $2->v, "1", $2->v, $2->type, $2->type);
           copyData(&$$, "++" + string($2->s), $2->type, $2->v);
           specificTypeCheck($2->type, "Numeric", "++");
         }
 ;
 pre_decrement_expression:
   TOK_4545 unary_expression		%prec PREDEC {
-          pushInstruction("-", $2->v, "1", $2->v);
+          pushInstructionWithType("-", $2->v, "1", $2->v, $2->type, $2->type);
           copyData(&$$, "--" + string($2->s), $2->type, $2->v);
           specificTypeCheck($2->type, "Numeric", "++");
         }
@@ -1968,7 +1984,7 @@ post_increment_expression:
   postfix_expression TOK_4343	  %prec POSTINC {
           string v = storeTemp("_", $1->v, "_");
           copyData(&$$, string($1->s) + "++", $1->type, v);
-          pushInstruction("+", $1->v, "1", $1->v);
+          pushInstructionWithType("+", $1->v, "1", $1->v, $1->type, $1->type);
           specificTypeCheck($1->type, "Numeric", "++");
         }
 ;
@@ -1976,7 +1992,7 @@ post_decrement_expression:
   postfix_expression TOK_4545		%prec POSTDEC {
           string v = storeTemp("_", $1->v, "_");
           copyData(&$$, string($1->s) + "--", $1->type, v);
-          pushInstruction("-", $1->v, "1", $1->v);
+          pushInstructionWithType("-", $1->v, "1", $1->v, $1->type, $1->type);
           specificTypeCheck($1->type, "Numeric", "--");
         }
 ;
@@ -2082,6 +2098,24 @@ string lookupType(string symbol) {
     i = symbol_table[i].parent;
   }
   return "";
+}
+
+int lookupOffset(string symbol) {
+  int i = cur_table_idx;
+  while (i != -1) {
+    if (symbol_table[i].method_table) {
+      for (int j = 0; j < symbol_table[i].parameters.size(); j++) {
+        if (symbol_table[i].parameters[j].first == symbol) {
+          return symbol_table[i].parameters[j].second.offset;
+        }
+      }
+    }
+    if (symbol_table[i].table.find(symbol) != symbol_table[i].table.end()) {
+      return symbol_table[i].table[symbol].offset;
+    }
+    i = symbol_table[i].parent;
+  }
+  return 0;
 }
 
 int getType(string type) {
@@ -2278,7 +2312,10 @@ int checkMethodArgs(string method_name, string args) {
   // cout<<args<<endl;
   vector<string> params_list;
   int i = get_meth(method_name);
-  if(i<0)return 0;
+  if (method_name == "System.out.println") {
+    return 1;
+  }
+  if(i<0) return 0;
   for (auto it = symbol_table[i].parameters.begin(); it != symbol_table[i].parameters.end(); it++) {
     params_list.push_back(it->second.type);
   }
@@ -2367,7 +2404,6 @@ int getArraySize(string type) {
         i++;
       }
       i++;
-      cout<<size;
       sz *= (size.length()==0)?0:stoi(size);
     }
   }
@@ -2421,6 +2457,25 @@ string storeTemp(string op, string arg1, string arg2) {
   return temp_var;
 }
 
+string storeTempWithType(string op, string arg1, string arg2, string type1, string type2) {
+  string temp_var = "t" + to_string(tmp_count++);
+  int t1 = getType(type1), t2 = getType(type2);
+  if (t1 == 1 && t2 == 1) {
+    pushInstruction(op + "int", arg1, arg2, temp_var);
+  } else if (t1 == 2 && t2 == 2) {
+    pushInstruction(op + "float", arg1, arg2, temp_var);
+  } else if (t1 == 1 && t2 == 2) {
+    string temp_var_1 = storeTemp("(float)", arg1, "_");
+    pushInstruction(op + "float", temp_var_1, arg2, temp_var);
+  } else if (t1 == 2 && t2 == 1) {
+    string temp_var_1 = storeTemp("(float)", arg2, "_");
+    pushInstruction(op + "float", arg1, temp_var_1, temp_var);
+  } else {
+    pushInstruction(op, arg1, arg2, temp_var);
+  }
+  return temp_var;
+}
+
 void pushInstruction(string op, string arg1, string arg2, string result) {
   vector<string> temp = {op, arg1, arg2, result};
   if (cur_method != -1) {
@@ -2429,6 +2484,30 @@ void pushInstruction(string op, string arg1, string arg2, string result) {
     } else {
       temp_code.top().push_back(temp);
     }
+  }
+}
+
+void pushInstructionWithType(string op, string arg1, string arg2, string result, string type1, string type2) {
+  vector<string> temp = {op, arg1, arg2, result};
+  if (cur_method == -1) {
+    return;
+  }
+  if (op == "_" && arg2 == "_") {
+    int t1 = getType(type1), t2 = getType(type2);
+    if (t1 == 1 && t2 == 2) {
+      string temp_var_1 = storeTemp("(int)", arg1, "_");
+      temp[1] = temp_var_1;
+    } else if (t1 == 2 && t2 == 1) {
+      string temp_var_1 = storeTemp("(float)", arg1, "_");
+      temp[1] = temp_var_1;
+    }
+  } else if (op == "+" || op == "-" || op == "*" || op == "/") {
+    temp[0] = op + type1;
+  }
+  if (!addToTemp) {
+    tac_code[cur_method].second.push_back(temp);
+  } else {
+    temp_code.top().push_back(temp);
   }
 }
 
@@ -2442,6 +2521,10 @@ void checkAndPushInstruction(string op, string arg1, string arg2, string result,
   } else {
     tac_code[cur_method].second.push_back(temp);
   }
+}
+
+void popLastInstruction() {
+  tac_code[cur_method].second.pop_back();
 }
 
 void pushTempCode() {
@@ -2596,10 +2679,13 @@ void dump3AC() {
       else if (ins[0] == "param")
         fout << "parampush " << ins[1];
       else if (ins[0] == "call") {
+        if (ins[1] == "System.out.println") {
+          ins[1] = "print";
+        }
         if (ins[3] == "_")
-          fout << "call " << ins[1] << ", " << ins[2];
+          fout << "call " << ins[1] << " " << ins[2];
         else
-          fout << ins[3] << " = call " << ins[1] << ", " << ins[2];
+          fout << ins[3] << " = call " << ins[1] << " " << ins[2];
       }else if(ins[0] == "push"){
         fout << "push "<< ins[1];
       }else if(ins[0] == "+stackptr"){
@@ -2614,10 +2700,18 @@ void dump3AC() {
         fout << ins[3] << "[" << ins[2] << "] = " << ins[1];
       else if (ins[0] == "&")
         fout << ins[3] << " = &" << ins[1];
-      else if (ins[0] == "* rhs")
-        fout << ins[3] << " = *" << ins[1];
-      else if (ins[0] == "* lhs")
-        fout << "*" << ins[3] << " = " << ins[1];
+      else if (ins[0] == "* rhs") {
+        if (ins[2] == "_")
+          fout << ins[3] << " = *" << ins[1];
+        else
+          fout << ins[3] << " = *(" << ins[1] << " + " << ins[2] << ")";
+      }
+      else if (ins[0] == "* lhs") {
+        if (ins[2] == "_")
+          fout << "*" << ins[3] << " = " << ins[1];
+        else
+          fout << "*(" << ins[3] << " + " << ins[2] << ") = " << ins[1];
+      }
       else if (ins[0] == "_")
         fout << ins[3] << " = " << ins[1];
       else {
