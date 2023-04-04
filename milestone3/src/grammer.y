@@ -91,6 +91,24 @@ int tmp_count = 1;
 int label_count = 1;
 int cur_method = -1;
 bool addToTemp = false;
+vector<pair<string,vector<struct expr*>>> methods;     //methods and there arguments
+
+map<string,string> meth_and_ret;
+
+map<string,int> size_map = {
+  {"byte", 1},
+  {"short", 2},
+  {"int", 4},
+  {"long", 8},
+  {"float", 4},
+  {"double", 8},
+  {"boolean", 1},
+  {"char", 2},
+  {"void", 0},
+  {"reference", 0},
+  {"null", 0},
+  {"class", 0}
+};
 
 // Function declarations
 void createTable(string name="", int class_table=0, string parent_class="", int method_table=0, bool link=false);
@@ -108,11 +126,12 @@ int checkMethodArgs(string, string);
 string getFieldVariableType(string);
 int getArraySize(string);
 void copyString(char **, string);
-void copyData(struct expr **e, string s="", string type="void", string v = "");
+void copyData(struct expr **e, string s="", string type="", string v = "");
 string storeTemp(string op, string arg1, string arg2="_");
 void pushInstruction(string, string, string, string);
 void checkAndPushInstruction(string, string, string, string, int mode=0);
 void pushTempCode();
+string call_procedure(struct expr*,struct expr*);
 
 void yyerror(char const *);
 
@@ -793,6 +812,8 @@ method_header:
               p.first = class_name + "." + name;
               tac_code.push_back(p);
               cur_method = tac_code.size() - 1;
+              methods.push_back({$1->s,vector<struct expr*>()});
+              meth_and_ret.insert({$2->s,$1->s});
               tmp_count = label_count = 1;
             } method_parameters throws.opt
 | TOK_void TOK_IDENTIFIER {
@@ -811,6 +832,8 @@ method_header:
               p.first = class_name + "." + name;
               tac_code.push_back(p);
               cur_method = tac_code.size() - 1;
+              methods.push_back({$1->s,vector<struct expr*>()});
+              meth_and_ret.insert({$2->s,$1->s});
               tmp_count = label_count = 1;
             } method_parameters throws.opt
 ;
@@ -829,7 +852,7 @@ formal_parameter_list:
   formal_parameter com_formal_parameter.multiopt
 ;
 com_formal_parameter.multiopt:
-  com_formal_parameter.multiopt TOK_44 formal_parameter
+  TOK_44 formal_parameter com_formal_parameter.multiopt
 | %empty {copyData(&$$);}
 ;
 formal_parameter:
@@ -843,6 +866,11 @@ formal_parameter:
                 }
                 symbol_table[cur_table_idx].parameters.push_back({$3->s,cur_info});
                 cur_size = 0;
+                struct expr *ep=(struct expr*)malloc(sizeof(struct expr));
+                ep->type=new char[type.length() + 1];
+                strcpy(ep->type, type.c_str());
+                ep->s=$3->s;
+                methods[cur_method].second.push_back(ep);
               }
 | variable_arity_parameter
 ;
@@ -856,6 +884,10 @@ variable_arity_parameter:
                   }
                 }
                 symbol_table[cur_table_idx].parameters.push_back({$4->s,cur_info});
+                struct expr *ep=(struct expr*)malloc(sizeof(struct expr));
+                ep->type=type.data();
+                ep->s=$4->s;
+                methods[cur_method].second.push_back(ep);
               }
 ;
 throws:
@@ -899,6 +931,8 @@ constructor_declarator:
               p.first = class_name + ".ctor";
               tac_code.push_back(p);
               cur_method = tac_code.size() - 1;
+              methods.push_back({$1->s,vector<struct expr*>()});
+              meth_and_ret.insert({$1->s,"void"});
               tmp_count = label_count = 1;
   } TOK_40 formal_parameter_list.opt TOK_41 { param_declaration = 0; }
 ;
@@ -1569,43 +1603,41 @@ array_access:
 method_invocation:
   un_name TOK_40 argument_list.opt TOK_41	  {
           // check no. of arguments and their type
-          int arg_cnt = checkMethodArgs($1->s, $3->s);
-          string v = "";
-          if (string($1->type) == "void")
-            pushInstruction("call", $1->s, to_string(arg_cnt), "_");
-          else
-            v = storeTemp("call", $1->s, to_string(arg_cnt));
+          string v=call_procedure($1,$3);
           copyData(&$$, string($1->s) + "(" + string($3->s) + ")", $1->type, v);
         }
 | primary TOK_46 TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
-          copyData(&$$, string($1->s) + "." + string($3->s) + "(" + string($5->s) + ")", "");
+          string v=call_procedure($3,$5);
+          copyData(&$$, string($1->s) + "." + string($3->s) + "(" + string($5->s) + ")", v);
+
           // TODO: get type
         }
 | TOK_super TOK_46  TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
+          string v=call_procedure($3,$5);
           copyData(&$$, "super." + string($3->s) + "(" + string($5->s) + ")", "");
+
           // TODO: get type
         }
 | un_name TOK_46 TOK_super TOK_46 TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
           copyData(&$$, string($1->s) + ".super." + string($5->s) + "(" + string($7->s) + ")", "");
+          call_procedure($5,$7);
           // TODO: get type
         }
 ;
 argument_list.opt:
-  argument_list   {
-          copyData(&$$, $1->s, $1->type);
-        }
+  argument_list
 | %empty {copyData(&$$);}
 ;
 argument_list:
   expression com_expression.multiopt   {
-          pushInstruction("param", $1->v, "_", "_");
-          copyData(&$$, string($1->type) + string($2->s), $1->type);
+          // pushInstruction("param", $1->v, "_", "_");
+          copyData(&$$, string($1->s) + string($2->s), string($1->type) + string($2->type),string($1->v) + string($2->v));
         }
 ;
 com_expression.multiopt:
-  com_expression.multiopt TOK_44 expression 	{
-          pushInstruction("param", $3->v, "_", "_");
-          copyData(&$$, string($1->s) + "," + string($3->type), $1->type);
+  TOK_44 expression com_expression.multiopt 	{
+          // pushInstruction("param", $2->v, "_", "_");
+          copyData(&$$, "," + string($2->s) + string($3->s),  "," + string($2->type) + string($3->type), "," + string($2->v) + string($3->v));
         }
 | %empty {copyData(&$$);}
 ;
@@ -2218,20 +2250,15 @@ void checkReturnType(string type) {
     cout << "Error at line no " << yylineno << ": Return type mismatch, expected " << return_type << " found " << type << endl;
   }
 }
-
-int checkMethodArgs(string method_name, string args) {
+int get_meth(string method_name){
   int i = cur_table_idx;
-  vector<string> params_list;
   if (method_name == "System.out.println") {
-    return 1;
+    return -1;
   }
   while (i != -1) {
     if (symbol_table[i].method_table) {
       if (symbol_table[i].name == method_name) {
-        for (auto it = symbol_table[i].parameters.begin(); it != symbol_table[i].parameters.end(); it++) {
-          params_list.push_back(it->second.type);
-        }
-        break;
+        return i;
       }
     } else if (symbol_table[i].class_table) {
       if (symbol_table[i].table.find(method_name) != symbol_table[i].table.end()) {
@@ -2243,8 +2270,19 @@ int checkMethodArgs(string method_name, string args) {
   }
   if (i == -1) {
     cout << "Error at line no " << yylineno << ": Method " << method_name << " not found" << endl;
-    return 0;
+    return -1;
   }
+  return i;
+}
+int checkMethodArgs(string method_name, string args) {
+  // cout<<args<<endl;
+  vector<string> params_list;
+  int i = get_meth(method_name);
+  if(i<0)return 0;
+  for (auto it = symbol_table[i].parameters.begin(); it != symbol_table[i].parameters.end(); it++) {
+    params_list.push_back(it->second.type);
+  }
+
   vector<string> args_list;
   string temp = "";
   for (int i = 0; i < args.length(); i++) {
@@ -2267,6 +2305,42 @@ int checkMethodArgs(string method_name, string args) {
     }
   }
   return args_list.size();
+}
+
+string call_procedure(struct expr* method_name, struct expr* args){
+  int arg_cnt = checkMethodArgs(method_name->s, args->type);
+  int ret_size=0;
+  // int i =get_meth(method_name->type);
+  // if(i<0){
+  //   cout<<"unknown method "+lookupType(method_name->s)<<endl;
+  //   return "";
+  // }
+  string meth_ret_type = lookupType(method_name->s);
+  if(size_map.find(meth_ret_type)!=size_map.end()){
+    ret_size=size_map[meth_ret_type];
+  }
+  if(ret_size)pushInstruction("-stackptr", to_string(ret_size), "_", "_");
+  string temp = "";
+  string args_v(args->v);
+  for (int i = 0; i < args_v.length(); i++) {
+    if (args_v[i] == ',') {
+      pushInstruction("param", temp, "_", "_");
+      temp = "";
+    } else {
+      temp += args_v[i];
+    }
+  }
+  pushInstruction("param", temp, "_", "_");
+  string v = "";
+  if (ret_size == 0)
+    pushInstruction("call", method_name->s, to_string(arg_cnt), "_");
+  else{
+    pushInstruction("call", method_name->s, to_string(arg_cnt), "_");
+    string v = "t" + to_string(tmp_count++);
+    pushInstruction("_", "0(stackptr)", "_", v);
+    // pushInstruction("+stackptr", to_string(ret_size), "_", "_");
+  }
+  return v;
 }
 
 int getArraySize(string type) {
@@ -2293,7 +2367,8 @@ int getArraySize(string type) {
         i++;
       }
       i++;
-      sz *= stoi(size);
+      cout<<size;
+      sz *= (size.length()==0)?0:stoi(size);
     }
   }
   return sz;
@@ -2448,7 +2523,7 @@ void optimizeTAC() {
 // 5. goto L              => <goto, _, _, L>
 // 6. if x goto L         => <if goto, x, _, L>
 // 7. if x relop y goto L => <if relop goto, x, y, L>
-// 8. param x             => <param, x, _, _>
+// 8. parampush x             => <param, x, _, _>
 // 9. call p, n           => <call, p, n, _>
 // 10. y = call p, n      => <call, p, n, y>
 // 11. return y           => <return, y, _, _>
@@ -2457,6 +2532,35 @@ void optimizeTAC() {
 // 14. x = &y             => <&, y, _, x>
 // 15. x = *y             => <* rhs, y, _, x>
 // 16. *x = y             => <* lhs, y, _, x>
+// 17. push r             => <push, r, _, _>
+// 18. stackptr+=x        => <+stackptr,x,_,_>
+// 19. stackptr-=x        => <-stackptr,x,_,_>
+
+void dump3AC_pre(ofstream &fout, int i){
+  fout << "\tpush ebp" << endl;
+  fout << "\tebp = stackptr" << endl;
+  int of=4;
+  for(int j=methods[i].second.size()-1;j>-1;j--){
+    struct expr *ep=methods[i].second[j];
+    if(size_map.find(ep->type)!=size_map.end()){
+      of+=size_map[ep->type];
+    }
+    fout<<"\t"<<ep->s<<" = +"<<of<<"(ebp)"<<endl;
+    // cout<<ep->type;
+
+  }
+}
+
+void dump3AC_post(ofstream &fout, int i, string ret){
+  int of=4;
+  for(int j=methods[i].second.size()-1;j>-1;j--){
+    struct expr *ep=methods[i].second[j];
+    if(size_map.find(ep->type)!=size_map.end()){
+      of+=size_map[ep->type];
+    }
+  }
+  fout<<"ebp = ";
+}
 
 void dump3AC() {
   optimizeTAC();
@@ -2465,6 +2569,7 @@ void dump3AC() {
     string method = tac_code[i].first;
     fout << method << ":" << endl;
     fout << "\tbeginfunc" << endl;
+    dump3AC_pre(fout,i);
     for (int j = 0; j < tac_code[i].second.size(); j++) {
       vector<string> ins = tac_code[i].second[j];
       fout << "\t";
@@ -2477,15 +2582,20 @@ void dump3AC() {
       else if (ins[0].size() > 7 && ins[0].substr(0, 1) == "if" && ins[0].substr(ins[0].size()-4, 4) == "goto")
         fout << "if " << ins[1] << " " << ins[0].substr(2, ins[0].size()-6) << " " << ins[2] << " goto " << ins[3];
       else if (ins[0] == "param")
-        fout << "param " << ins[1];
+        fout << "parampush " << ins[1];
       else if (ins[0] == "call") {
         if (ins[3] == "_")
           fout << "call " << ins[1] << ", " << ins[2];
         else
           fout << ins[3] << " = call " << ins[1] << ", " << ins[2];
-      }
-      else if (ins[0] == "return")
-        fout << "return " << ins[1];
+      }else if(ins[0] == "push"){
+        fout << "push "<< ins[1];
+      }else if(ins[0] == "+stackptr"){
+        fout << "stackptr += "<< ins[1];
+      }else if(ins[0] == "-stackptr"){
+        fout << "stackptr -= "<< ins[1];
+      }else if (ins[0] == "return")
+        dump3AC_post(fout,i,ins[1]);
       else if (ins[0] == "[] rhs")
         fout << ins[3] << " = " << ins[1] << "[" << ins[2] << "]";
       else if (ins[0] == "[] lhs")
@@ -2507,7 +2617,8 @@ void dump3AC() {
       fout << endl;
     }
     if (tac_code[i].second.size() == 0 || tac_code[i].second[tac_code[i].second.size()-1][0] != "return") {
-      fout << "\treturn" << endl;
+      fout<<'\t';
+      dump3AC_post(fout,i,"");
     }
     fout << "\tendfunc\n" << endl;
   }
