@@ -783,16 +783,18 @@ eq_variable_initializer.opt:
 ;
 variable_declarator_id:
   TOK_IDENTIFIER dims.opt   {
-                copyData(&$$, $1->s, $2->s, $1->s);
+                int offset = symbol_table[cur_table_idx].size;
                 if (param_declaration == 0) {
-                  int offset = symbol_table[cur_table_idx].size;
+
                   string type = cur_type + string($2->s);
                   struct info cur_info = createInfo(type, "variable", cur_size, offset, yylineno, modifiers);
                   insertSymbol($1->s, &cur_info);
                   symbol_table[cur_table_idx].size += cur_size;
-                  pushInstruction("param", to_string(cur_size), "_", "");
-                  pushInstruction("call", "allocmem", "1", "_");
+                  // pushInstruction("param", to_string(cur_size), "_", "");
+                  // pushInstruction("call", "allocmem", "1", "_");
+                  pushInstruction("-stackptr", to_string(cur_size), "_", "_");
                 }
+                copyData(&$$, $1->s, $2->s, "*(ebp - "+to_string(offset)+")");
               }
 ;
 dims.opt:
@@ -1731,7 +1733,7 @@ assignment:
 left_hand_side:
   un_name  {
           string offset = to_string(lookupOffset(string($1->s)));
-          string v = "*(ebp + " + offset + ")";
+          string v = "*(ebp - " + offset + ")";
           copyData(&$$, string($1->s), $1->type, v);
           popLastInstruction();
         }
@@ -2375,28 +2377,28 @@ int checkMethodArgs(string method_name, string args) {
   return args_list.size();
 }
 
-string find_type_expr(string meth){
-  int l=meth.length();
-  if(l==0)return "";
-  int i = meth.find('.');
-  if(i==string::npos){
-    i=l-1;
-  }
-  string tmp = meth.substr(0,i);
-  string after = meth.substr(i+1,l-i-1);
-  if(tmp=="this"||tmp=="super"){
-    int cur_table_idx_b = cur_table_idx;
-    while(symbol_table[cur_table_idx].class_table==0)cur_table_idx = symbol_table[cur_table_idx].parent;
-    string ans;
-    if(tmp=="this"){
-      ans=find_type_expr(after);
-    }else{
+// string find_type_expr(string meth){
+//   int l=meth.length();
+//   if(l==0)return "";
+//   int i = meth.find('.');
+//   if(i==string::npos){
+//     i=l-1;
+//   }
+//   string tmp = meth.substr(0,i);
+//   string after = meth.substr(i+1,l-i-1);
+//   if(tmp=="this"||tmp=="super"){
+//     int cur_table_idx_b = cur_table_idx;
+//     while(symbol_table[cur_table_idx].class_table==0)cur_table_idx = symbol_table[cur_table_idx].parent;
+//     string ans;
+//     if(tmp=="this"){
+//       ans=find_type_expr(after);
+//     }else{
 
-    }
-    cur_table_idx = cur_table_idx_b;
-  }
+//     }
+//     cur_table_idx = cur_table_idx_b;
+//   }
 
-}
+// }
 
 string call_procedure(struct expr* method_name, struct expr* args){
   string meth = method_name->s;
@@ -2433,7 +2435,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
   else{
     pushInstruction("call", meth, to_string(arg_cnt), "_");
     v = "t" + to_string(tmp_count++);
-    pushInstruction("_", "+"+to_string(ret_size)+"(stackptr)", "_", v);
+    pushInstruction("* rhs", "(stackptr + "+to_string(ret_size)+")", "_", v);
     pushInstruction("+stackptr", to_string(ret_size), "_", "_");
   }
   return v;
@@ -2686,10 +2688,11 @@ void dump3AC_pre(ofstream &fout, int i){
     struct expr *ep=methods[i].second[j];
     if(size_map.find(ep->type)!=size_map.end()){
       of+=size_map[ep->type];
+      fout<<"\tstackptr = stackptr - "<<size_map[ep->type]<<endl;
     }
-    fout<<"\t"<<ep->s<<" = +"<<of<<"(ebp)"<<endl;
+    // fout<<"\t"<<ep->s<<" = +"<<of<<"(ebp)"<<endl;
+    fout<<"\t*(ebp - "<<lookupOffset(ep->s)<<") = *(ebp + "<<of<<")"<<endl;
     // cout<<ep->type;
-
   }
 }
 
@@ -2708,10 +2711,10 @@ void dump3AC_post(ofstream &fout, int i, string ret){
     of+=size_map[ret_type];
   }
   if(ret!=""){
-    fout<<"+"<<of<<"(ebp) = "<<ret<<endl<<"\t";
+    fout<<"*(ebp + "<<of<<") = "<<ret<<endl<<"\t";
   }
   fout<<"stackptr = ebp + "<<tmp<<endl;
-  fout<<"\tebp = 0(ebp)"<<endl;
+  fout<<"\tebp = *(ebp + 4)"<<endl;
   fout<<"\tret"<<endl;
 
 }
@@ -2736,7 +2739,7 @@ void dump3AC() {
       else if (ins[0].size() > 7 && ins[0].substr(0, 1) == "if" && ins[0].substr(ins[0].size()-4, 4) == "goto")
         fout << "if " << ins[1] << " " << ins[0].substr(2, ins[0].size()-6) << " " << ins[2] << " goto " << ins[3];
       else if (ins[0] == "param")
-        fout << "parampush " << ins[1];
+        fout << "push " << ins[1];
       else if (ins[0] == "call") {
         if (ins[1] == "System.out.println") {
           ins[1] = "print";
