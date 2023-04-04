@@ -2568,7 +2568,7 @@ void dump3AC_post(ofstream &fout, int i, string ret){
   if(ret!=""){
     fout<<"+"<<of<<"(ebp) = "<<ret<<endl<<"\t";
   }
-  fout<<"stackptr = ebp - "<<tmp<<endl;
+  fout<<"stackptr = ebp + "<<tmp<<endl;
   fout<<"\tebp = 0(ebp)"<<endl;
   fout<<"\tret"<<endl;
 
