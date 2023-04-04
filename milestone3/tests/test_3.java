@@ -17,8 +17,8 @@ public final class BubbleSort extends Sort {
     private double z;
     
     BubbleSort(float x) {
-        this.x = (int) x;
-        this.y = (int) x+1;
+        this.x = x;
+        this.y = x+1;
         this.z = 0f;
     }
 
