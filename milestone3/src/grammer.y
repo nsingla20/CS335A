@@ -115,6 +115,8 @@ void createTable(string name="", int class_table=0, string parent_class="", int 
 struct info createInfo(string, string, int, int, int, unordered_set<string>, int table_idx = -1);
 unordered_set<string> split_modifiers(string);
 void insertSymbol(string, struct info *);
+int getCurSize();
+void updateSize(int);
 void checkDeclaration(string);
 string lookupType(string);
 int lookupOffset(string);
@@ -783,11 +785,12 @@ eq_variable_initializer.opt:
 ;
 variable_declarator_id:
   TOK_IDENTIFIER dims.opt   {
-                int offset = symbol_table[cur_table_idx].size;
+                int offset = getCurSize();
                 if (param_declaration == 0) {
 
                   string type = cur_type + string($2->s);
                   struct info cur_info = createInfo(type, "variable", cur_size, offset, yylineno, modifiers);
+                  updateSize(cur_size);
                   insertSymbol($1->s, &cur_info);
                   symbol_table[cur_table_idx].size += cur_size;
                   // pushInstruction("param", to_string(cur_size), "_", "");
@@ -872,7 +875,9 @@ com_formal_parameter.multiopt:
 formal_parameter:
   modifier.multiopt type variable_declarator_id {
                 string type = string($2->s) + string($3->type);
-                struct info cur_info = createInfo(type, "parameter", cur_size, 0, yylineno, modifiers);
+                int offset = getCurSize();
+                struct info cur_info = createInfo(type, "parameter", cur_size, offset, yylineno, modifiers);
+                updateSize(cur_size);
                 for (auto itr = symbol_table[cur_table_idx].parameters.begin(); itr != symbol_table[cur_table_idx].parameters.end(); itr++) {
                   if (itr->first == $3->s) {
                     cout << "Error at line no " << yylineno << ": " << "Parameter with name " << string($3->s) << " already declared" << endl;
@@ -891,7 +896,9 @@ formal_parameter:
 variable_arity_parameter:
   modifier.multiopt type TOK_464646 TOK_IDENTIFIER	{
                 string type = string($2->s) + "...";
-                struct info cur_info = createInfo(type, "parameter", cur_size, 0, yylineno, modifiers);
+                int offset = getCurSize();
+                struct info cur_info = createInfo(type, "parameter", cur_size, offset, yylineno, modifiers);
+                updateSize(cur_size);
                 for (auto itr = symbol_table[cur_table_idx].parameters.begin(); itr != symbol_table[cur_table_idx].parameters.end(); itr++) {
                   if (itr->first == $4->s) {
                     cout << "Error at line no " << yylineno << ": " << "Parameter with name " << string($4->s) << " already declared" << endl;
@@ -2063,6 +2070,29 @@ void insertSymbol(string symbol, struct info *i) {
   } else {
     cout << "Error at line no " << yylineno << ": " << symbol << " already declared in this scope\n";
   }
+}
+
+int getCurSize() {
+  int i = cur_table_idx;
+  while (i != -1) {
+    if (symbol_table[i].method_table) {
+      return symbol_table[i].size;
+    }
+    i = symbol_table[i].parent;
+  }
+  return symbol_table[cur_table_idx].size;
+}
+
+void updateSize(int sz) {
+  int i = cur_table_idx;
+  while (i != -1) {
+    if (symbol_table[i].method_table) {
+      symbol_table[i].size += sz;
+      return;
+    }
+    i = symbol_table[i].parent;
+  }
+  symbol_table[cur_table_idx].size += sz;
 }
 
 void checkDeclaration(string symbol) {
