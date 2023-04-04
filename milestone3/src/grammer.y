@@ -136,6 +136,7 @@ void popLastInstruction();
 void checkAndPushInstruction(string, string, string, string, int mode=0);
 void pushTempCode();
 string call_procedure(struct expr*,struct expr*);
+string find_type_expr(string meth);
 
 void yyerror(char const *);
 
@@ -674,7 +675,8 @@ normal_class_declaration:
                           string name = string($3->s);
                           insertSymbol(name, &cur_info);
                           modifiers.clear();
-                          createTable(name, 1, $5->s, 0, true);
+                          if(cur_table_idx>-1 && symbol_table[cur_table_idx].name!="")name = symbol_table[cur_table_idx].name+"."+name;
+                          createTable( name, 1, $5->s, 0, true);
                         } class_body {
                           int prev_index = cur_table_idx;
                           cur_table_idx = symbol_table[cur_table_idx].parent;
@@ -2284,24 +2286,53 @@ void checkReturnType(string type) {
     cout << "Error at line no " << yylineno << ": Return type mismatch, expected " << return_type << " found " << type << endl;
   }
 }
+
+int get_index(string type){
+  for(int i=0;i<symbol_table.size();i++){
+    string tmp;
+    if (symbol_table[i].method_table) {
+      tmp = symbol_table[symbol_table[i].parent].name + "." + symbol_table[i].name;
+    }else{
+      tmp=symbol_table[i].name;
+    }
+    if(tmp == type)
+      return i;
+  }
+  return -1;
+}
+
 int get_meth(string method_name){
-  int i = cur_table_idx;
+
   if (method_name == "System.out.println") {
     return -1;
   }
-  while (i != -1) {
-    if (symbol_table[i].method_table) {
-      if (symbol_table[i].name == method_name) {
-        return i;
-      }
-    } else if (symbol_table[i].class_table) {
-      if (symbol_table[i].table.find(method_name) != symbol_table[i].table.end()) {
-        i = symbol_table[i].table[method_name].table_idx;
-        continue;
-      }
+  int l=1;
+  for(int i=0;i<method_name.length();i++){
+    if(method_name[i]=='.'){
+      l++;
     }
-    i = symbol_table[i].parent;
   }
+  int i = cur_table_idx;
+  // cout<<i;
+  if(l==1){
+    while(symbol_table[i].class_table ==0)i=symbol_table[i].parent;
+    method_name = symbol_table[i].name + "." + method_name;
+  }
+  // while (i != -1) {
+  //   if (symbol_table[i].method_table) {
+  //     if (symbol_table[i].name == method_name) {
+  //       return i;
+  //     }
+  //   } else if (symbol_table[i].class_table) {
+  //     if (symbol_table[i].table.find(method_name) != symbol_table[i].table.end()) {
+  //       i = symbol_table[i].table[method_name].table_idx;
+  //       continue;
+  //     }
+  //   }
+  //   i = symbol_table[i].parent;
+  // }
+
+  i=get_index(method_name);
   if (i == -1) {
     cout << "Error at line no " << yylineno << ": Method " << method_name << " not found" << endl;
     return -1;
@@ -2344,15 +2375,43 @@ int checkMethodArgs(string method_name, string args) {
   return args_list.size();
 }
 
+string find_type_expr(string meth){
+  int l=meth.length();
+  if(l==0)return "";
+  int i = meth.find('.');
+  if(i==string::npos){
+    i=l-1;
+  }
+  string tmp = meth.substr(0,i);
+  string after = meth.substr(i+1,l-i-1);
+  if(tmp=="this"||tmp=="super"){
+    int cur_table_idx_b = cur_table_idx;
+    while(symbol_table[cur_table_idx].class_table==0)cur_table_idx = symbol_table[cur_table_idx].parent;
+    string ans;
+    if(tmp=="this"){
+      ans=find_type_expr(after);
+    }else{
+
+    }
+    cur_table_idx = cur_table_idx_b;
+  }
+
+}
+
 string call_procedure(struct expr* method_name, struct expr* args){
-  int arg_cnt = checkMethodArgs(method_name->s, args->type);
+  string meth = method_name->s;
+  int arg_cnt = checkMethodArgs(meth, args->type);
   int ret_size=0;
   // int i =get_meth(method_name->type);
   // if(i<0){
-  //   cout<<"unknown method "+lookupType(method_name->s)<<endl;
+  //   cout<<"unknown method "+lookupType(meth)<<endl;
   //   return "";
   // }
-  string meth_ret_type = lookupType(method_name->s);
+  int meth_i = get_meth(meth);
+  string meth_ret_type = "";
+  if(meth_i>-1){
+    meth_ret_type = symbol_table[meth_i].return_type;
+  }
   if(size_map.find(meth_ret_type)!=size_map.end()){
     ret_size=size_map[meth_ret_type];
   }
@@ -2370,9 +2429,9 @@ string call_procedure(struct expr* method_name, struct expr* args){
   pushInstruction("param", temp, "_", "_");
   string v = "";
   if (ret_size == 0)
-    pushInstruction("call", method_name->s, to_string(arg_cnt), "_");
+    pushInstruction("call", meth, to_string(arg_cnt), "_");
   else{
-    pushInstruction("call", method_name->s, to_string(arg_cnt), "_");
+    pushInstruction("call", meth, to_string(arg_cnt), "_");
     v = "t" + to_string(tmp_count++);
     pushInstruction("_", "+"+to_string(ret_size)+"(stackptr)", "_", v);
     pushInstruction("+stackptr", to_string(ret_size), "_", "_");

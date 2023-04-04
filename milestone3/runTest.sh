@@ -1,7 +1,9 @@
 #!/bin/bash
 cd src
 make
-cd ../tmp
+cd ..
+mkdir tmp
+cd tmp
 
 for f in ./../tests/*; do
     echo $f
