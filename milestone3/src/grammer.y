@@ -666,7 +666,8 @@ normal_class_declaration:
                           string name = string($3->s);
                           insertSymbol(name, &cur_info);
                           modifiers.clear();
-                          createTable(name, 1, $5->s, 0, true);
+                          if(cur_table_idx>-1 && symbol_table[cur_table_idx].name!="")name = symbol_table[cur_table_idx].name+"."+name;
+                          createTable( name, 1, $5->s, 0, true);
                         } class_body {
                           int prev_index = cur_table_idx;
                           cur_table_idx = symbol_table[cur_table_idx].parent;
@@ -2251,23 +2252,45 @@ void checkReturnType(string type) {
   }
 }
 int get_meth(string method_name){
-  int i = cur_table_idx;
+
   if (method_name == "System.out.println") {
     return -1;
   }
-  while (i != -1) {
-    if (symbol_table[i].method_table) {
-      if (symbol_table[i].name == method_name) {
-        return i;
-      }
-    } else if (symbol_table[i].class_table) {
-      if (symbol_table[i].table.find(method_name) != symbol_table[i].table.end()) {
-        i = symbol_table[i].table[method_name].table_idx;
-        continue;
-      }
+  int l=1;
+  for(int i=0;i<method_name.length();i++){
+    if(method_name[i]=='.'){
+      l++;
     }
-    i = symbol_table[i].parent;
   }
+  int i = cur_table_idx;
+  cout<<i;
+  if(l==1){
+    while(symbol_table[i].class_table ==0)i=symbol_table[i].parent;
+    method_name = symbol_table[i].name + "." + method_name;
+  }
+  // while (i != -1) {
+  //   if (symbol_table[i].method_table) {
+  //     if (symbol_table[i].name == method_name) {
+  //       return i;
+  //     }
+  //   } else if (symbol_table[i].class_table) {
+  //     if (symbol_table[i].table.find(method_name) != symbol_table[i].table.end()) {
+  //       i = symbol_table[i].table[method_name].table_idx;
+  //       continue;
+  //     }
+  //   }
+  //   i = symbol_table[i].parent;
+  // }
+  for(i=0;i<symbol_table.size();i++){
+
+    // cout<<tmp<<" "<<method_name<<endl;
+    if (symbol_table[i].method_table) {
+      string tmp = symbol_table[symbol_table[i].parent].name + "." + symbol_table[i].name;
+      if(tmp == method_name)
+        return i;
+    }
+  }
+  i=-1;
   if (i == -1) {
     cout << "Error at line no " << yylineno << ": Method " << method_name << " not found" << endl;
     return -1;
