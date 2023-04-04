@@ -604,7 +604,7 @@ un_name:
           int offset = lookupOffset(string($1->s));
           // string v1 = storeTemp("getOffset(" + string($1->s) + ")", "", "_");
           // string v2 = storeTemp("* rhs", "ebp", v1);
-          string v2 = storeTemp("* rhs", "ebp", to_string(offset));
+          string v2 = storeTemp("* rhs", "(ebp - "+to_string(offset)+")","_");
           copyData(&$$, string($1->s), type, v2);
         }
 | un_name TOK_46 TOK_IDENTIFIER     {
@@ -2717,12 +2717,13 @@ void dump3AC_pre(ofstream &fout, int i){
   int of=4;
   for(int j=methods[i].second.size()-1;j>-1;j--){
     struct expr *ep=methods[i].second[j];
+    int x=of;
     if(size_map.find(ep->type)!=size_map.end()){
       of+=size_map[ep->type];
-      fout<<"\tstackptr = stackptr - "<<size_map[ep->type]<<endl;
+      fout<<"\tstackptr -= "<<size_map[ep->type]<<endl;
     }
     // fout<<"\t"<<ep->s<<" = +"<<of<<"(ebp)"<<endl;
-    fout<<"\t*(ebp - "<<lookupOffset(ep->s)<<") = *(ebp + "<<of<<")"<<endl;
+    fout<<"\t*(ebp - "<<x-4<<") = *(ebp + "<<of<<")"<<endl;
     // cout<<ep->type;
   }
 }
