@@ -1,9 +1,0 @@
-Method: result
-Return Type: int
-Parameters: a (type: int), b (type: int), 
-
-Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
-res,int,variable,4,8,26,,2
-e,int,variable,4,12,36,,5
-i,int,variable,4,16,42,,6
-j,int,variable,4,20,43,,8

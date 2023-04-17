@@ -1,9 +1,0 @@
-Global Symbol Table
-Package Name: algorithms
-Imports: "java.util.Scanner", "java.io.*", "static java.lang.System.out", 
-
-Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
-BubbleSort,,class,0,8,15,final public ,0
-Sort,,class,0,0,7,,0
-String,,class,0,0,0,,0
-System,,class,0,0,0,,0

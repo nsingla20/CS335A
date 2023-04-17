@@ -1,6 +1,0 @@
-Class: Sort
-Parent Class: 
-
-Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
-make,void,method,0,8,10,public ,0
-vec,int,variable,4,0,8,public ,0
