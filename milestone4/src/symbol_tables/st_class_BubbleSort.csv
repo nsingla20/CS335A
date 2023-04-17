@@ -1,0 +1,10 @@
+Class: BubbleSort
+Parent Class: Sort
+
+Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
+BubbleSort,BubbleSort,constructor,0,32,19,,0
+main,int,method,0,32,55,static public ,0
+result,int,method,0,32,25,private ,0
+x,int,variable,4,0,16,public ,0
+y,int,variable,4,8,16,public ,0
+z,double,variable,8,16,17,private ,0
