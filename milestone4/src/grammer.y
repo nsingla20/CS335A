@@ -85,6 +85,7 @@ bool ignoreDeclaration = false;
 // Data structures to store the three address code
 // <operator, arg1, arg2, result>
 vector<pair<string,vector<vector<string>>>> tac_code;
+vector<vector<string>> assembly;
 stack<int> label_stack, loop_entry, loop_exit;
 stack<vector<vector<string>>> temp_code;
 int tmp_count = 1;
@@ -1181,7 +1182,7 @@ statement_expression:
 | class_instance_creation_expression
 ;
 if_then_statement:
-  if_condition statement {
+  if_condition statement {                  //if_condition statement
           int label = label_stack.top();
           label_stack.pop();
           checkAndPushInstruction("label", "_", "_", "L" + to_string(label));
@@ -1191,7 +1192,7 @@ if_then_else_statement:
   if_then_statement TOK_else {
           checkAndPushInstruction("goto", "_", "_", "L" + to_string(label_count), 1);
           label_stack.push(label_count++);
-        } statement {
+        } statement {       // statement
           int label = label_stack.top();
           label_stack.pop();
            checkAndPushInstruction("label", "_", "_", "L" + to_string(label));
@@ -1910,7 +1911,8 @@ additive_expression:
   multiplicative_expression
 | additive_expression TOK_43 multiplicative_expression {
           string v = storeTempWithType("+", $1->v, $3->v, $1->type, $3->type);
-          copyData(&$$, string($1->s) + " + " + string($3->s), getFinalType($1->type, $3->type), v);
+          // copyData(&$$, string($1->s) + " + " + string($3->s), getFinalType($1->type, $3->type), v);
+          copyData(&$$, "addi " + string($1->s) + string($3->s), getFinalType($1->type, $3->type), v);
           specificTypeCheck($1->type, "Numeric", "+");
           specificTypeCheck($3->type, "Numeric", "+");
         }
@@ -2754,6 +2756,7 @@ void dump3AC_post(ofstream &fout, int i, string ret){
 void dump3AC() {
   optimizeTAC();
   ofstream fout("3AC.txt");
+
   for (int i = 0; i < tac_code.size(); i++) {
     string method = tac_code[i].first;
     fout << method << ":" << endl;
@@ -2825,6 +2828,8 @@ void dump3AC() {
   fout.close();
   cout << "3AC generated" << endl;
 }
+
+
 
 int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");

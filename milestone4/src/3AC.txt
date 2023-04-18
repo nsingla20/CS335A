@@ -1,0 +1,23 @@
+GFG.main:
+	beginfunc
+	push ebp
+	ebp = stackptr
+	stackptr -= 4
+	*(ebp - 0) = 4
+	stackptr -= 4
+	*(ebp - 4) = 3
+	stackptr -= 4
+	*(ebp - 8) = 8
+	stackptr -= 4
+	*(ebp - 12) = 7
+	stackptr -= 4
+	t1 = 8 % 3
+	*(ebp - 16) = t1
+	t3 = *(ebp - 16)
+	push t3
+	call print 1
+	stackptr = ebp + 4
+	ebp = *(ebp + 4)
+	ret
+	endfunc
+
