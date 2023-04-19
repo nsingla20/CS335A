@@ -27,6 +27,8 @@ milestone3/src/*
 !milestone3/src/scanner.l
 !milestone3/src/myASTGenerator
 
+milestone4/*
+!milestone4/src
 milestone4/src/*
 !milestone4/src/grammer.y
 !milestone4/src/Makefile
@@ -38,7 +40,7 @@ milestone4/src/*
 !milestone4/src/*.sh
 !milestone4/src/changes.txt
 
-
+!milestone4/tests
 milestone4/tests/*
 !milestone4/tests/*.java
 !milestone4/tests/*.c

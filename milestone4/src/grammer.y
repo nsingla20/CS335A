@@ -812,7 +812,7 @@ variable_initializer:
 | array_initializer
 ;
 method_declaration:
-  modifier.multiopt method_header method_body { 
+  modifier.multiopt method_header method_body {
     int sz = symbol_table[cur_table_idx].size;
     vector<string> allocate_mem = {"-", "%rsp", to_string(sz), "%rsp"};
     tac_code[cur_method].second.insert(tac_code[cur_method].second.begin(), allocate_mem);
@@ -2858,18 +2858,20 @@ void generateAssembly() {
   ofstream fout("out.s");
   fout << "\t.text" << endl;
   fout << "\t.globl\tmain" << endl;
-  
+
   for (auto method : tac_code) {
     // process each method
-    int idx = method.first.find('.');
-    string method_name = method.first.substr(idx+1);
-    
+    string method_name = method.first;
+    int sz = method_name.size();
+    if (method_name.size() >= 4 && method_name.substr(sz-4, 4) == "main") {
+      method_name = "main";
+    }
     fout << method_name << ":" << endl;
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       // process each instruction
       updateOperands(itr);
-      
+
       // PROLOGUE and RETURN INSTRUCTIONS
       if (itr[0] == "push") {
         // push to stack
@@ -2963,16 +2965,22 @@ void generateAssembly() {
         fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
       }
 
-      // PROCEDURE CALL
-      else if (itr[0] == "call") {
-        // procedure call
-        fout << "\tcall\t" << itr[1] << endl;
-      } else if (itr[0] == "return") {
+      }
+      // Procedure call
+      else if (itr[0] == "call"){
+        if (itr[3]=="_"){
+          fout << "\tcall " <<itr[1]<<endl;
+        }else{
+          fout << "\tcall" <<itr[1]<<endl;
+          fout << "\tmovq \%eax "<<itr[2]<<endl;
+        }
+        else if (itr[0] == "return") {
         continue;
       }
-      
+
       else {
         cout << "ERROR: unknown instruction: " << itr[0] << endl;
+      }
       }
     }
   }
