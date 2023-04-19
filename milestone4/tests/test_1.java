@@ -10,7 +10,9 @@ public class Test1 {
 		a = 1; b = 2; c = 3;
 		b = 15 + a*10 + c;
 		if (a > b) {
-			b = a + (c % 10);
+			b = a + (c - 2);
+		} else if (a == b) {
+			b = a*b;
 		} else {
 			b = a + b;
 		}
@@ -20,9 +22,7 @@ public class Test1 {
 			i += 1;
 			a = a + b;
 		}
-		// std::cout<<b<<"\n";
-		
-		// printf("%d",b);
+		System.out.println(b);
 		return 0;
 	}
 }
