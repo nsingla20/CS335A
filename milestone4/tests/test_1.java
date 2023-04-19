@@ -1,9 +1,9 @@
 public class Test1 {
-	// public int sum(int a, int b) {
-	// 	int c = 15;
-	// 	c = a + b;
-	// 	return c;
-	// }
+	public int sum(int a, int b) {
+		int c = 15;
+		c = a + b;
+		return c;
+	}
 	
 	public static int main() {
 		int a, b, c;
@@ -14,7 +14,7 @@ public class Test1 {
 		} else {
 			b = a + b;
 		}
-		// a = a + sum(b, c);
+		a = a + sum(b, c);
 		
 		for (int i = 0; i < 15; i++){
 			i += 1;

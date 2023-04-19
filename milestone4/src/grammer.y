@@ -2678,19 +2678,19 @@ void optimizeTAC() {
 
 // 3AC forms -
 // 1d. x = y               => <_, y, _, x>
-// 2. x = op y            => <op, y, _, x>
-// 3. x = y op z          => <op, y, z, x>
+// 2d. x = op y            => <op, y, _, x>
+// 3d. x = y op z          => <op, y, z, x>
 // 4d. L:                  => <label, _, _, L>
 // 5d. goto L              => <goto, _, _, L>
-// 6. if x goto L         => <if goto, x, _, L>
-// 7. if x relop y goto L => <if relop goto, x, y, L>
-// 8. parampush x         => <param, x, _, _>
-// 9. call p, n           => <call, p, n, _>
-// 10. y = call p, n      => <call, p, n, y>
-// 11. return y           => <return, y, _, _>
-// 12. x = y[i]           => <[] rhs, y, i, x>
-// 13. x[i] = y           => <[] lhs, y, i, x>
-// 14. x = &y             => <&, y, _, x>
+// 6d. if x goto L         => <if goto, x, _, L>
+// 7n. if x relop y goto L => <if relop goto, x, y, L>
+// 8n. parampush x         => <param, x, _, _>
+// 9d. call p, n           => <call, p, n, _>
+// 10d. y = call p, n      => <call, p, n, y>
+// 11d. return y           => <return, y, _, _>
+// 12n. x = y[i]           => <[] rhs, y, i, x>
+// 13n. x[i] = y           => <[] lhs, y, i, x>
+// 14n. x = &y             => <&, y, _, x>
 // 15d. x = *y             => <* rhs, y, _, x>
 // 16d. *x = y             => <* lhs, y, _, x>
 // 17d. push r             => <push, r, _, _>
@@ -2761,6 +2761,9 @@ void dump3AC() {
     }
     for (int j = 0; j < tac_code[i].second.size(); j++) {
       vector<string> ins = tac_code[i].second[j];
+      if (ins[0] == "return") {
+        continue;
+      }
       fout << "\t";
       if (ins[0] == "label")
         fout << ins[3] << ":";
@@ -2859,13 +2862,12 @@ void generateAssembly() {
   
   for (auto method : tac_code) {
     // process each method
-    string method_name = method.first;
-    int sz = method_name.size();
-    if (method_name.size() >= 4 && method_name.substr(sz-4, 4) == "main") {
-      method_name = "main";
-    }
+    int idx = method.first.find('.');
+    string method_name = method.first.substr(idx+1);
+    
     fout << method_name << ":" << endl;
-    for (auto itr : method.second) {
+    for (int i = 0; i < method.second.size(); i++) {
+      vector<string> itr = method.second[i];
       // process each instruction
       updateOperands(itr);
       
@@ -2900,15 +2902,15 @@ void generateAssembly() {
           fout << "\t" + op + "\t" << itr[2] << ", " << itr[3] << endl;
         }
       } else if (itr[0][0] == '*' || itr[0][0] == '/') {
-        // CHECK: multiply or divide
+        // TODO: multiply or divide
         string op = itr[0][0] == '*' ? "imulq" : "idivq";
         if (itr[1] == itr[3]) {
           // x = x * y or x = x / y
-          fout << "\t" + op + "\t" << itr[2] << endl;
+          // fout << "\t" + op + "\t" << itr[2] << endl;
         } else {
           // x = y * z or x = y / z
-          fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
-          fout << "\t" + op + "\t" << itr[2] << endl;
+          // fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
+          // fout << "\t" + op + "\t" << itr[2] << endl;
         }
       } else if (itr[0] == "<<" || itr[0] == ">>" || itr[0] == "&" || itr[0] == "|" || itr[0] == "^") {
         // left/right shift, bitwise and/or/xor
@@ -2937,12 +2939,42 @@ void generateAssembly() {
       } else if (itr[0][0] == '<' || itr[0][0] == '>' || itr[0] == "==" || itr[0] == "!=") {
         // conditional jump
         // ASSUMPTION: one comparison then not operator then jump
+        //             comparison only used for jump
         // e.g.
         //    t12 = t10 > t11
         //    t13 = ! t12
         //    if t13 goto L1
+        fout << "\tcmpq\t" << itr[2] << ", " << itr[1] << endl;
+        string jumpop = "jmp";
+        if (itr[0] == "<") {
+          jumpop = "jge";
+        } else if (itr[0] == ">") {
+          jumpop = "jle";
+        } else if (itr[0] == "<=") {
+          jumpop = "jg";
+        } else if (itr[0] == ">=") {
+          jumpop = "jl";
+        } else if (itr[0] == "==") {
+          jumpop = "jne";
+        } else if (itr[0] == "!=") {
+          jumpop = "je";
+        }
+        i += 2;
+        itr = method.second[i];
+        fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
+      }
 
-      } 
+      // PROCEDURE CALL
+      else if (itr[0] == "call") {
+        // procedure call
+        fout << "\tcall\t" << itr[1] << endl;
+      } else if (itr[0] == "return") {
+        continue;
+      }
+      
+      else {
+        cout << "ERROR: unknown instruction: " << itr[0] << endl;
+      }
     }
   }
 }

@@ -1,3 +1,5 @@
+ASSUMPTION: non clashing function names
+
 Changes in 3ac code:
     changed way of procedure call - used predefined registers
     changed way of returning value - used predefined registers
@@ -13,11 +15,21 @@ Completed:
 - OPERATORS:
     - assignment
     - add/subtract (unary as well)
-    - CHECK: multiply/divide
+    - TODO: multiply/divide
     - shift (<< / >>), bitwise and (&), or (|), xor (^)
 - CONTROL FLOW:
     - label
     - unconditional jump
-    - TODO: conditional jump
-- TODO: function call
+    - conditional jump
+- FUNCTION CALL:
+    - procedure call
+    - return instruction
+
 - TODO: register allocation
+- TODO: q vs l type instructions
+- TODO: change 3ac code for && and || and ! to fit under
+        assumption for conditional jump
+- TODO: print
+- TODO: string literals
+- TODO: arrays
+- TODO: objects
