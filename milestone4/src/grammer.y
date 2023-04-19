@@ -2967,6 +2967,7 @@ void generateAssembly() {
   fout << "\t.section .rdata" << endl;
   fout << ".LC0:" << endl;
   fout << "\t.string\t\"%d\\n\"" << endl;
+  fout << "\t.text" << endl;
   fout << "\t.globl\tmain" << endl;
 
   for (auto method : tac_code) {

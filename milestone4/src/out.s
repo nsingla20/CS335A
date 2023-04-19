@@ -1,6 +1,7 @@
 	.section .rdata
 .LC0:
 	.string	"%d\n"
+	.text
 	.globl	main
 Test1.sum:
 	pushq	%rbp
