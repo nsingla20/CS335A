@@ -2417,6 +2417,19 @@ int checkMethodArgs(string method_name, string args) {
 
 string call_procedure(struct expr* method_name, struct expr* args){
   string meth = method_name->s;
+  if (meth == "System.out.println") {
+    string temp = "";
+    string args_v(args->v);
+    int reg_cnt = 0;
+    for (int i = 0; i < args_v.length(); i++) {
+      if (args_v[i] == ',') {
+        pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
+        temp = "";
+      } else {
+        temp += args_v[i];
+      }
+    }
+  }
   int arg_cnt = checkMethodArgs(meth, args->type);
   int ret_size=0;
   // int i =get_meth(method_name->type);
@@ -2432,7 +2445,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
   if(size_map.find(meth_ret_type)!=size_map.end()){
     ret_size=size_map[meth_ret_type];
   }
-  if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
+  // if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
   string temp = "";
   string args_v(args->v);
   vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
@@ -2831,6 +2844,8 @@ void dump3AC() {
   fout.close();
   cout << "3AC generated" << endl;
 }
+void updateRegisters(vector<string> &ins) {
+  vector<string> regs={"%rsi","%rdi","%rdx","%rcx","%r8","%r9","%r10","%r11"};
 
 void updateOperands(vector<string> &ins) {
   for (int i = 0; i < 4; i++) {
@@ -2876,59 +2891,19 @@ void allocate_regs(vector<vector<string>> &ins) {
   map<string, int> offset;
   int used_mem = 0;
   for (int i = 0; i < ins.size(); i++) {
-    for (int j = 0; j < 3; j++) {
+    for (int j = 0; j < 4; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
         last_line_used[ins[i][j]] = i;
       }
     }
   }
   for (int i = 0; i < ins.size(); i++) {
-    // if (ins[i][0] == "call") {
-    //   int cnt = 0;
-    //   stack<string> saved_regs;
-    //   // save used callee registers in the stack
-    //   for (int j = 0; j < 8; j++) {
-    //     if (avl_callee_regs.find(j) == avl_callee_regs.end()) {
-    //       ins.insert(ins.begin() + i + cnt++, {"pushq", callee_regs[j], "_", "_"});
-    //       saved_regs.push(callee_regs[j]);
-    //     }
-    //   }
-    //   cnt++;
-    //   // load the saved registers
-    //   while (!saved_regs.empty()) {
-    //     ins.insert(ins.begin() + i + cnt++, {"popq", saved_regs.top(), "_", "_"});
-    //     saved_regs.pop();
-    //   }
-    // }
     for (int j = 1; j < 4; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
         if (reg_map.find(ins[i][j]) == reg_map.end()) {
           // allocate a register
-          if (avl_callee_regs.size() == 0) {
-            cout << "Error: No registers available" << endl;
-            // save a register in the stack, and load it later
-            // use the register that is not used for the longest time
-            int reg = -1, max_last_used = 10000;
-            for (int k = 0; k < 8; k++) {
-              if (last_used[k] < max_last_used) {
-                max_last_used = last_used[k];
-                reg = k;
-              }
-            }
-            // save the register in the stack
-            ins.insert(ins.begin() + i, {"pushq", callee_regs[reg], "_", "_"});
-            used_mem += 8;
-            // make the register available
-            avl_callee_regs.insert(reg);
-            // update reg map
-            reg_map[reg_to_var[reg]] = -1;
-            for (auto it = offset.begin(); it != offset.end(); it++) {
-              it->second += 8;
-            }
-            offset[reg_to_var[reg]] = 0;
-          }
-          int reg = *avl_callee_regs.begin();
-          avl_callee_regs.erase(reg);
+          int reg = *avl_caller_regs.begin();
+          avl_caller_regs.erase(reg);
           reg_map[ins[i][j]] = reg;
           reg_to_var[reg] = ins[i][j];
         }
@@ -2951,7 +2926,7 @@ void allocate_regs(vector<vector<string>> &ins) {
         last_used[reg_map[temp_var]] = i;
 
         // free the register if it is not used later
-        if (last_line_used[temp_var] <= i) {
+        if (last_line_used[ins[i][j]] == i) {
           int reg = reg_map[ins[i][j]];
           avl_callee_regs.insert(reg);
           reg_to_var.erase(reg);
@@ -2968,7 +2943,7 @@ void generateAssembly() {
   fout << ".LC0:" << endl;
   fout << "\t.string\t\"%d\\n\"" << endl;
   fout << "\t.globl\tmain" << endl;
-
+  updateRegisters();
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
@@ -2977,8 +2952,8 @@ void generateAssembly() {
       method_name = "main";
     }
     fout << method_name << ":" << endl;
-    
-    allocate_regs(method.second);
+
+    // allocate_regs(method.second);
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       // process each instruction
