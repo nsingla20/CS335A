@@ -2854,6 +2854,46 @@ void updateOperands(vector<string> &ins) {
   }
 }
 
+void allocate_regs(vector<vector<string>> &ins) {
+  vector<string> callee_regs = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9", "%r10", "%r11"};
+  vector<string> caller_regs = {"%rbx", "%rbp", "%r12", "%r13", "%r14", "%r15"};
+  set<int> avl_caller_regs, avl_callee_regs;
+  for (int i = 0; i < 8; i++) {
+    avl_callee_regs.insert(i);
+  }
+  for (int i = 0; i < 6; i++) {
+    avl_caller_regs.insert(i);
+  }
+  map<string, int> last_line_used, reg_map;
+  for (int i = 0; i < ins.size(); i++) {
+    for (int j = 0; j < 3; j++) {
+      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
+        last_line_used[ins[i][j]] = i;
+      }
+    }
+  }
+  for (int i = 0; i < ins.size(); i++) {
+    for (int j = 1; j < 4; j++) {
+      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
+        if (reg_map.find(ins[i][j]) == reg_map.end()) {
+          // allocate a register
+          int reg = *avl_caller_regs.begin();
+          avl_caller_regs.erase(reg);
+          reg_map[ins[i][j]] = reg;
+        }
+        // replace the temporary variable with the register
+        ins[i][j] = callee_regs[reg_map[ins[i][j]]];
+
+        // free the register if it is not used later
+        if (last_line_used[ins[i][j]] == i) {
+          int reg = reg_map[ins[i][j]];
+          avl_callee_regs.insert(reg);
+        }
+      }
+    }
+  }
+}
+
 void generateAssembly() {
   ofstream fout("out.s");
   fout << "\t.text" << endl;
@@ -2867,6 +2907,8 @@ void generateAssembly() {
       method_name = "main";
     }
     fout << method_name << ":" << endl;
+    
+    allocate_regs(method.second);
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       // process each instruction

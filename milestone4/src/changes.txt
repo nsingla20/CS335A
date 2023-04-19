@@ -17,7 +17,6 @@ Completed:
 - OPERATORS:
     - assignment
     - add/subtract (unary as well)
-    - TODO: multiply/divide
     - shift (<< / >>), bitwise and (&), or (|), xor (^)
 - CONTROL FLOW:
     - label
@@ -27,6 +26,7 @@ Completed:
     - procedure call
     - return instruction
 
+- TODO: multiply/divide
 - TODO: register allocation
 - TODO: q vs l type instructions
 - TODO: registers value change after function call
