@@ -27,6 +27,33 @@ Offbp           \*\([a-z]+[-+ ]+[0-9]+\)
 "endfunc"       {;}
 {Stackptr}      {assembly[assembly.size() - 1]+="\%rsp";}
 {Identifier}    {   string h(yytext);
+
+                    for(int i = 0;(h.size() > 3) && i<h.size() - 3;i++){
+                        if(h[i] == 'i' && h[i+1] == 'n' && h[i+2] == 't'){
+                            h.erase(i,1);
+                            h.erase(i,1);
+                            h.erase(i,1);
+                            break;
+                        }
+                    }
+                    int flag = 0;
+                    for(int i = 0;i<h.size();i++){
+                        if(h[i]!=' ' && (h[i] <= '0' || h[i] >= '9')){
+                            flag = 1;
+                            break;
+                        }
+                    }
+
+                    if(flag == 0){
+                        for(int i = 0;i<h.size();i++){
+                            if(h[i] >= '0' && h[i] <= '9'){
+                                h.insert(i,"$");
+                                break;
+                            }
+                        }
+                    }
+
+
                     assembly[assembly.size()-1]+=h;
                 }
 {Offbp}       {//cout<<yytext<<"++++++\n";

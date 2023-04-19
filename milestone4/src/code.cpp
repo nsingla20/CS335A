@@ -122,6 +122,207 @@ void replace_with_reg(vector<string>&lines, vector<vector<int>>line_temp){
     return;
 }
 
+void fix_operator(vector<string> &output){
+    for(int i = 0; i<output.size(); i++){
+        int flag = 0;
+        for(int j = 0; j<output[i].size()-1; j++){
+            if(output[i][j] == '+' && output[i][j+1] == ' '){
+                flag = 1;
+            }
+            else if(output[i][j] == '-' && output[i][j+1] == ' '){
+                flag = 2;
+            }
+            else if(output[i][j] == '*' && output[i][j+1] == ' '){
+                flag = 3;
+            }
+            else if(output[i][j] == '/' && output[i][j+1] == ' '){
+                flag = 4;
+            }
+            else if(output[i][j] == '%' && output[i][j+1] == ' '){
+                flag = 5;
+            }
+            else if(output[i][j] == '!'){
+                flag = 6;
+            }
+        }
+
+        if(flag == 1){
+            //output[i].replace(output[i].find("+"),1,"addq");
+            int begin = -1;
+            int end;
+            for(int j = 0; j<output[i].size()-1; j++){
+                if(begin == -1 && output[i][j] == ' '){
+                    begin = j;
+                }
+                if(output[i][j] == ','){
+                    end = j;
+                    break;
+                }
+            }
+
+            // process the string with operator +
+            string temp = output[i].substr(begin+1,end-begin-1);
+            int split_idx = -1;
+            for(int i = 0;i<temp.size();i++){
+                if(temp[i] == '+'){
+                    split_idx = i;
+                    break;
+                }
+            }
+
+            string temp1 = temp.substr(0,split_idx);
+            string temp2 = temp.substr(split_idx+1,temp.size()-split_idx-1);
+
+            string line = "\taddq " + temp2 + ", " + temp1 + "\n";
+            //insert line in vector output
+            output.insert(output.begin() + i,line);
+            i++;
+            
+            int tflag = 0;
+            for(int j = 0;j<output[i].size(); j++){
+                if(output[i][j] == '+'){
+                    tflag = 1;
+                }
+                if(output[i][j] == ','){
+                    tflag = 0;
+                    break;
+                }
+                if(tflag == 1){
+                    output[i].erase(j,1);
+                    j--;
+                }
+            }
+        }
+        else if(flag == 2){
+            //output[i].replace(output[i].find("-"),1,"subq");
+            int begin = -1;
+            int end;
+            for(int j = 0; j<output[i].size()-1; j++){
+                if(begin == -1 && output[i][j] == ' '){
+                    begin = j;
+                }
+                if(output[i][j] == ','){
+                    end = j;
+                    break;
+                }
+            }
+
+            // process the string with operator +
+            string temp = output[i].substr(begin+1,end-begin-1);
+            int split_idx = -1;
+            for(int i = 0;i<temp.size();i++){
+                if(temp[i] == '-'){
+                    split_idx = i;
+                    break;
+                }
+            }
+
+            string temp1 = temp.substr(0,split_idx);
+            string temp2 = temp.substr(split_idx+1,temp.size()-split_idx-1);
+
+            string line = "\tsubl " + temp2 + ", " + temp1 + "\n";
+            //insert line in vector output
+            output.insert(output.begin() + i,line);
+            i++;
+            
+            int tflag = 0;
+            for(int j = 0;j<output[i].size(); j++){
+                if(output[i][j] == '-'){
+                    tflag = 1;
+                }
+                if(output[i][j] == ','){
+                    tflag = 0;
+                    break;
+                }
+                if(tflag == 1){
+                    output[i].erase(j,1);
+                    j--;
+                }
+            }
+        }
+        else if(flag == 3){
+            //output[i].replace(output[i].find("*"),1,"imulq");
+            int begin = -1;
+            int end;
+            for(int j = 0; j<output[i].size()-1; j++){
+                if(begin == -1 && output[i][j] == ' '){
+                    begin = j;
+                }
+                if(output[i][j] == ','){
+                    end = j;
+                    break;
+                }
+            }
+
+            // process the string with operator +
+            string temp = output[i].substr(begin+1,end-begin-1);
+            int split_idx = -1;
+            for(int i = 0;i<temp.size();i++){
+                if(temp[i] == '*'){
+                    split_idx = i;
+                    break;
+                }
+            }
+
+            string temp1 = temp.substr(0,split_idx);
+            string temp2 = temp.substr(split_idx+1,temp.size()-split_idx-1);
+
+            string line = "\timull " + temp2 + ", " + temp1 + "\n";
+            //insert line in vector output
+            output.insert(output.begin() + i,line);
+            i++;
+            
+            int tflag = 0;
+            for(int j = 0;j<output[i].size(); j++){
+                if(output[i][j] == '*'){
+                    tflag = 1;
+                }
+                if(output[i][j] == ','){
+                    tflag = 0;
+                    break;
+                }
+                if(tflag == 1){
+                    output[i].erase(j,1);
+                    j--;
+                }
+            }
+        }
+        else if(flag == 4){
+            //output[i].replace(output[i].find("/"),1,"idivq");
+        }
+        else if(flag == 5){
+            //output[i].replace(output[i].find("%"),1,"idivq");
+        }
+        else if(flag == 6){
+            for(int j = 0;j<output[i].size();j++){
+                if(output[i][j] == '!'){
+                    output[i].erase(j,1);
+                    break;
+                }
+            }
+            int begin = -1;
+            int end;
+            for(int j = 0; j<output[i].size()-1; j++){
+                if(begin == -1 && output[i][j] == ' '){
+                    begin = j;
+                }
+                if(output[i][j] == ','){
+                    end = j;
+                    break;
+                }
+            }
+
+            // process the string with operator +
+            string temp = output[i].substr(begin+1,end-begin-1);
+            
+            string line = "\tnot " + temp + "\n";
+            output.insert(output.begin() + i,line);
+            i++;
+        }
+    }
+}
+
+
 int main(){
     ifstream fin("assembly.s");
     ofstream fout("final.s");
@@ -130,7 +331,6 @@ int main(){
     vector<vector<int>> temp_vars(1000);
     string line;
     int lineno = 0;
-
 
     while (getline(fin, line)) { 
         int sign = -1;
@@ -238,6 +438,7 @@ int main(){
     map_temp_lineno(temp_vars,output);
     // replace temprorary variables with scratch register
     replace_with_reg(output,temp_vars);
+    fix_operator(output);
 
     for(int i = 0;i<output.size();i++){
         fout<<output[i];
