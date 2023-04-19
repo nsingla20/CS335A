@@ -1,0 +1,23 @@
+Changes in 3ac code:
+    changed way of procedure call - used predefined registers
+    changed way of returning value - used predefined registers
+    rbp -> %rbp
+    stackptr -> %rsp
+    offset starts from positive value (not 0 i.e. includes cur var size)
+
+Note - final output is stored in out.s (currently checking on test_1.java)
+
+Completed:
+- prologue
+- return instruction with value
+- OPERATORS:
+    - assignment
+    - add/subtract (unary as well)
+    - CHECK: multiply/divide
+    - shift (<< / >>), bitwise and (&), or (|), xor (^)
+- CONTROL FLOW:
+    - label
+    - unconditional jump
+    - TODO: conditional jump
+- TODO: function call
+- TODO: register allocation
