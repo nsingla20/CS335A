@@ -2720,7 +2720,7 @@ void dump3AC_pre(ofstream &fout, int i){
   }
 }
 
-void dump3AC_post(ofstream &fout, int i, string ret){
+void dump3AC_post(ofstream &fout, int i,int j, string ret){
   int of=4;
   for(int j=methods[i].second.size()-1;j>-1;j--){
     struct expr *ep=methods[i].second[j];
@@ -2734,13 +2734,14 @@ void dump3AC_post(ofstream &fout, int i, string ret){
     // cout<<ret_type;
     of+=size_map[ret_type];
   }
+  tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"ret", "_", "_", "_"});
   if(ret!=""){
-    tac_code[i].second.push_back({"_", ret, "_", "\%eax"});
+    tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"_", ret, "_", "%eax"});
     // fout<<"*(%rbp + "<<of<<") = "<<ret<<endl<<"\t";
   }
   // tac_code[i].second.push_back({"+", "%rbp", to_string(tmp), "%rsp"});
   // tac_code[i].second.push_back({"* rhs", "(%rbp + 4)", "_", "%rbp"});
-  tac_code[i].second.push_back({"ret", "_", "_", "_"});
+
   // fout<<"%rsp = %rbp + "<<tmp<<endl;
   // fout<<"\t%rbp = *(%rbp + 4)"<<endl;
   // fout<<"\tret"<<endl;
@@ -2757,14 +2758,14 @@ void dump3AC() {
     fout << "\tbeginfunc" << endl;
     dump3AC_pre(fout,i);
     if (tac_code[i].second.size() == 0 || tac_code[i].second[tac_code[i].second.size()-1][0] != "return") {
-      dump3AC_post(fout,i,"");
+      // dump3AC_post(fout,i,"");
+      tac_code[i].second.push_back({"return","","_","_"});
     }
     for (int j = 0; j < tac_code[i].second.size(); j++) {
       vector<string> ins = tac_code[i].second[j];
-      if (ins[0] == "return") {
-        dump3AC_post(fout,i,ins[1]);
-        continue;
-      }
+      // if (ins[0] == "return") {
+      //   continue;
+      // }
       fout << "\t";
       if (ins[0] == "label")
         fout << ins[3] << ":";
@@ -2786,6 +2787,8 @@ void dump3AC() {
           fout << ins[3] << " = call " << ins[1] << " " << ins[2];
       } else if(ins[0] == "push")
         fout << "push "<< ins[1];
+      else if (ins[0] == "return")
+        dump3AC_post(fout,i,j,ins[1]);
       else if (ins[0] == "[] rhs")
         fout << ins[3] << " = " << ins[1] << "[" << ins[2] << "]";
       else if (ins[0] == "[] lhs")
@@ -2821,7 +2824,10 @@ void dump3AC() {
   fout.close();
   cout << "3AC generated" << endl;
 }
+void updateRegisters(vector<string> &ins) {
+  vector<string> regs={"%rsi","%rdi","%rdx","%rcx","%r8","%r9","%r10","%r11"};
 
+}
 void updateOperands(vector<string> &ins) {
   for (int i = 0; i < 4; i++) {
     if (ins[i].size() == 0 || ins[i] == "_")
@@ -3006,7 +3012,6 @@ void generateAssembly() {
         itr = method.second[i];
         fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
       }
-
       // Procedure call
       else if (itr[0] == "call") {
         if (itr[1] == "System.out.println") {
@@ -3016,7 +3021,7 @@ void generateAssembly() {
           fout << "\tcall " <<itr[1]<<endl;
         }else{
           fout << "\tcall" <<itr[1]<<endl;
-          fout << "\tmovq \%eax "<<itr[2]<<endl;
+          fout << "\tmovq %eax "<<itr[2]<<endl;
         }
       } else if (itr[0] == "return") {
         continue;

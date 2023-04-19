@@ -29,7 +29,7 @@ void segrigate(string line,int lineno,vector<vector<int>> &temp_vars){
 void map_temp_lineno(vector<vector<int>> &temp_vars,vector<string> output){
     string line;
 
-    for(int i = 0;i<output.size();i++){ 
+    for(int i = 0;i<output.size();i++){
         segrigate(line,i,temp_vars);
     }
     return;
@@ -37,15 +37,15 @@ void map_temp_lineno(vector<vector<int>> &temp_vars,vector<string> output){
 
 void replace_with_reg(vector<string>&lines, vector<vector<int>>line_temp){
     // contains the line no, where the temp variable is used
-    vector<int> index(1000,0);     
-    // contains the register assigned to the temp variable         
+    vector<int> index(1000,0);
+    // contains the register assigned to the temp variable
     vector<int> assigned_reg(1000,-1);
 
     // scratch registers : rsi, rdi, rdx, rcx, r8, r9, r10, r11
-    map<int,string> reg { 
+    map<int,string> reg {
         {0,"%rsi"},
         {1,"%rdi"},
-        {2,"%rdx"}, 
+        {2,"%rdx"},
         {3,"%rcx"},
         {4,"%r8"},
         {5,"%r9"},
@@ -177,7 +177,7 @@ void fix_operator(vector<string> &output){
             //insert line in vector output
             output.insert(output.begin() + i,line);
             i++;
-            
+
             int tflag = 0;
             for(int j = 0;j<output[i].size(); j++){
                 if(output[i][j] == '+'){
@@ -224,7 +224,7 @@ void fix_operator(vector<string> &output){
             //insert line in vector output
             output.insert(output.begin() + i,line);
             i++;
-            
+
             int tflag = 0;
             for(int j = 0;j<output[i].size(); j++){
                 if(output[i][j] == '-'){
@@ -271,7 +271,7 @@ void fix_operator(vector<string> &output){
             //insert line in vector output
             output.insert(output.begin() + i,line);
             i++;
-            
+
             int tflag = 0;
             for(int j = 0;j<output[i].size(); j++){
                 if(output[i][j] == '*'){
@@ -314,7 +314,7 @@ void fix_operator(vector<string> &output){
 
             // process the string with operator +
             string temp = output[i].substr(begin+1,end-begin-1);
-            
+
             string line = "\tnot " + temp + "\n";
             output.insert(output.begin() + i,line);
             i++;
@@ -324,7 +324,7 @@ void fix_operator(vector<string> &output){
 
 
 int main(){
-    ifstream fin("assembly.s");
+    ifstream fin("/mnt/common/DATA/Coding/github/CS335A/milestone4/S/test_gfg.java.S");
     ofstream fout("final.s");
     vector<string> output;
 
@@ -332,7 +332,7 @@ int main(){
     string line;
     int lineno = 0;
 
-    while (getline(fin, line)) { 
+    while (getline(fin, line)) {
         int sign = -1;
         int idx = -1;
 
@@ -380,7 +380,7 @@ int main(){
             q = "\tje " + tempL + "\n";
             output.push_back(p);
             output.push_back(q);
-            continue; 
+            continue;
         }
 
         // Operators to instructions

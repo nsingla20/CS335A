@@ -1,36 +1,34 @@
-.section    .rodata
-.LC0:
-	.string    "%d\n"
 	.text
-	.globl    main
-GFG.main:
-
-	pushq %rbp
-	movq %rsp, %rbp 
-	subq %rsp, 4
-	movq 4, +0(%rbp) 
-	subq %rsp, 4
-	movq 3, +4(%rbp) 
-	subq %rsp, 4
-	movq 8, +8(%rbp) 
-	subq %rsp, 4
-	movq 7, +12(%rbp) 
-	movq +0(%rbp), %rsi 
-	movq %rsi > 2, %rdi 
-	movq ! %rdi, %rdx 
-	cmpq $0, %rdx
-	je L1
-	movq +4(%rbp), %rcx 
-	movq %rcx +int 1, %r8 
-	movq %r8, +4(%rbp) 
-	
-L1:
-	subq %rsp, 4
-	movq 8 % 3, %r9 
-	movq %r9, +16(%rbp) 
-	movq %rbp + 4, %rsp
-	movq -4(%rbp), %rbp 
+	.globl	main
+GFG.sum:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	subq	$12, %rsp
+	movq	%rsi, -4(%rbp)
+	movq	%rdi, -8(%rbp)
+	movq	$15, -12(%rbp)
+	movq	-4(%rbp), %rsi
+	movq	-8(%rbp), %rsi
+	movq	%rsi, %rdi
+	addq	%rsi, %rdi
+	movq	%rsi, -12(%rbp)
+	movq	-12(%rbp), %rsi
+	movq	%rsi, %eax
+	leave
 	ret
-	
-	
-	
+main:
+	pushq	%rbp
+	movq	%rsp, %rbp
+	subq	$20, %rsp
+	movq	$69, -4(%rbp)
+	movq	$12, -8(%rbp)
+	movq	$12, -12(%rbp)
+	movq	$2, -16(%rbp)
+	subq	$4, %rsp
+	movq	$1, %rdi
+	movq	$2, %rsi
+	call sum
+	movq	%eax, %rsi
+	movq	%rsi, -20(%rbp)
+	leave
+	ret
