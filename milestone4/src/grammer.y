@@ -2830,6 +2830,11 @@ void dump3AC() {
 }
 
 
+void generateAssembly() {
+  ofstream fout("assembly.s");
+  fout << ".data" << endl;
+}
+
 
 int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");
@@ -2840,5 +2845,6 @@ int main(int argc, char *argv[]) {
 	fclose(yyin);
   print_symbol_table();
   dump3AC();
+  generateAssembly();
 	return 0;
 }

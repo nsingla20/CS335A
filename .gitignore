@@ -27,4 +27,21 @@ milestone3/src/*
 !milestone3/src/scanner.l
 !milestone3/src/myASTGenerator
 
+milestone4/src/*
+!milestone4/src/grammer.y
+!milestone4/src/Makefile
+!milestone4/src/scanner.l
+!milestone4/src/myASTGenerator
+!milestone4/src/*.cpp
+!milestone4/src/*.l
+!milestone4/src/*.s
+!milestone4/src/*.sh
+
+
+milestone4/tests/*
+!milestone4/tests/*.java
+!milestone4/tests/*.c
+!milestone4/tests/*.s
+!milestone4/tests/*.sh
+
 .vscode
