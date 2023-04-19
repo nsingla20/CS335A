@@ -2432,7 +2432,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
   if(size_map.find(meth_ret_type)!=size_map.end()){
     ret_size=size_map[meth_ret_type];
   }
-  if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
+  // if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
   string temp = "";
   string args_v(args->v);
   vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
@@ -2452,7 +2452,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
   else{
     pushInstruction("call", meth, to_string(arg_cnt), "_");
     v = "t" + to_string(tmp_count++);
-    pushInstruction("_", "\%eax", "_", v);
+    pushInstruction("_", "\%rax", "_", v);
     // pushInstruction("+", "%rsp", to_string(ret_size), "%rsp");
   }
   return v;
@@ -2736,7 +2736,7 @@ void dump3AC_post(ofstream &fout, int i,int j, string ret){
   }
   tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"ret", "_", "_", "_"});
   if(ret!=""){
-    tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"_", ret, "_", "%eax"});
+    tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"_", ret, "_", "%rax"});
     // fout<<"*(%rbp + "<<of<<") = "<<ret<<endl<<"\t";
   }
   // tac_code[i].second.push_back({"+", "%rbp", to_string(tmp), "%rsp"});
@@ -2824,8 +2824,44 @@ void dump3AC() {
   fout.close();
   cout << "3AC generated" << endl;
 }
-void updateRegisters(vector<string> &ins) {
+void updateRegisters() {
   vector<string> regs={"%rsi","%rdi","%rdx","%rcx","%r8","%r9","%r10","%r11"};
+  vector<string> occupied(8,"");
+  map<string,string> m;
+  for (auto &method : tac_code) {
+    for (int i = 0; i < method.second.size(); i++) {
+      vector<string> itr = method.second[i];
+      for(int j=0;j<4;j++){
+        if(itr[j][0]=='t'){
+          if(m.find(itr[j])==m.end()){
+            int k=0;
+            while(occupied[k]!="")k++;
+            occupied[k]=itr[j];
+            m[itr[j]]=regs[k];
+            method.second[i][j]=regs[k];
+          }else{
+            method.second[i][j]=m[itr[j]];
+          }
+        }
+      }
+      for(int j=0;j<8;j++){
+        if(occupied[j]=="")continue;
+        bool f=false;
+        for(int k=i+1;!f&&k<method.second.size();k++){
+          vector<string> itr = method.second[k];
+          for(int l=0;!f&&l<4;l++){
+            if(itr[l]==occupied[j]){
+              f=true;
+            }
+          }
+        }
+        if(!f){
+          occupied[j]="";
+        }
+      }
+
+    }
+  }
 
 }
 void updateOperands(vector<string> &ins) {
@@ -2904,7 +2940,7 @@ void generateAssembly() {
   ofstream fout("out.s");
   fout << "\t.text" << endl;
   fout << "\t.globl\tmain" << endl;
-
+  updateRegisters();
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
@@ -3021,7 +3057,7 @@ void generateAssembly() {
           fout << "\tcall " <<itr[1]<<endl;
         }else{
           fout << "\tcall" <<itr[1]<<endl;
-          fout << "\tmovq %eax "<<itr[2]<<endl;
+          fout << "\tmovq %rax "<<itr[2]<<endl;
         }
       } else if (itr[0] == "return") {
         continue;
