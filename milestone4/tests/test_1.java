@@ -16,13 +16,13 @@ public class Test1 {
 		} else {
 			b = a + b;
 		}
-		a = a + sum(b, c);
+		// a = a + sum(b, c);
 		
 		for (int i = 0; i < 15; i++){
 			i += 1;
 			a = a + b;
 		}
-		System.out.println(b);
+		// System.out.println(b);
 		return 0;
 	}
 }
