@@ -111,13 +111,13 @@ void replace_with_reg(vector<string>&lines, vector<vector<int>>line_temp){
                 }
             }
         }
-        // for(int i = 0;i<regs.size();i++){
-        //     if(line_temp[regs[i]].size()<index[regs[i]]){
-        //         // not used
-        //         occupied[assigned_reg[regs[i]]] = 0;
-        //         assigned_reg[regs[i]] = -1;
-        //     }
-        // }
+        for(int i = 0;i<regs.size();i++){
+            if(line_temp[regs[i]].size()<index[regs[i]]){
+                // not used
+                occupied[assigned_reg[regs[i]]] = 0;
+                assigned_reg[regs[i]] = -1;
+            }
+        }
     }
     return;
 }
