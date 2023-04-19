@@ -1,9 +1,10 @@
-// int sum(int a, float b){
-//     int c = 15;
-//     c = a + b;
-//     return c;
-// }
 #include <stdio.h>
+
+int sum(int a, float b){
+    int c = 15;
+    c = a + b;
+    return c;
+}
 
 int main(){
     int a, b, c;
@@ -14,7 +15,7 @@ int main(){
 	} else {
 		b = a + b;
 	}
-	// 	a = a + sum(b, c);
+		a = a + sum(b, c);
 	
 	for (int i = 0; i < 15; i++){
 		i += 1;
@@ -22,6 +23,6 @@ int main(){
 	}
 	// std::cout<<b<<"\n";
 	
-    printf("%d",b);
+    // printf("%d",b);
     return 0;
 }

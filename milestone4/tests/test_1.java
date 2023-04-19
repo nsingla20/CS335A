@@ -9,9 +9,10 @@ public class Test1 {
 		int a, b;
 		double c = 12.5;
 		b = 15 + a*2 + c;
-		if (a > b)
-			a = a + sum(b, c);
-		
+		if (a > b) {
+			// a = a + sum(b, c);
+			a += b;
+		}
 		for (int i = 0; i < 15; i++){
 			i += 1;
 			a = a + b;

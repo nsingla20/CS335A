@@ -81,7 +81,6 @@ int param_declaration = 0;
 bool ignoreDeclaration = false;
 
 
-
 // Data structures to store the three address code
 // <operator, arg1, arg2, result>
 vector<pair<string,vector<vector<string>>>> tac_code;
@@ -604,8 +603,8 @@ un_name:
             type = "unknown type";
           int offset = lookupOffset(string($1->s));
           // string v1 = storeTemp("getOffset(" + string($1->s) + ")", "", "_");
-          // string v2 = storeTemp("* rhs", "ebp", v1);
-          string v2 = storeTemp("* rhs", "(ebp - "+to_string(offset)+")","_");
+          // string v2 = storeTemp("* rhs", "rbp", v1);
+          string v2 = storeTemp("* rhs", "(rbp - "+to_string(offset)+")","_");
           copyData(&$$, string($1->s), type, v2);
         }
 | un_name TOK_46 TOK_IDENTIFIER     {
@@ -799,7 +798,7 @@ variable_declarator_id:
                   // pushInstruction("call", "allocmem", "1", "_");
                   pushInstruction("-stackptr", to_string(cur_size), "_", "_");
                 }
-                copyData(&$$, $1->s, $2->s, "*(ebp - "+to_string(offset)+")");
+                copyData(&$$, $1->s, $2->s, "*(rbp - "+to_string(offset)+")");
               }
 ;
 dims.opt:
@@ -833,7 +832,6 @@ method_header:
               cur_method = tac_code.size() - 1;
               methods.push_back({$1->s,vector<struct expr*>()});
               meth_and_ret.insert({$2->s,$1->s});
-              tmp_count = label_count = 1;
             } method_parameters throws.opt
 | TOK_void TOK_IDENTIFIER {
               // symbol table entry
@@ -853,7 +851,6 @@ method_header:
               cur_method = tac_code.size() - 1;
               methods.push_back({$1->s,vector<struct expr*>()});
               meth_and_ret.insert({$2->s,$1->s});
-              tmp_count = label_count = 1;
             } method_parameters throws.opt
 ;
 throws.opt:
@@ -956,7 +953,6 @@ constructor_declarator:
               cur_method = tac_code.size() - 1;
               methods.push_back({$1->s,vector<struct expr*>()});
               meth_and_ret.insert({$1->s,"void"});
-              tmp_count = label_count = 1;
   } TOK_40 formal_parameter_list.opt TOK_41 { param_declaration = 0; }
 ;
 simple_type_name:
@@ -1742,7 +1738,7 @@ assignment:
 left_hand_side:
   un_name  {
           string offset = to_string(lookupOffset(string($1->s)));
-          string v = "*(ebp - " + offset + ")";
+          string v = "*(rbp - " + offset + ")";
           copyData(&$$, string($1->s), $1->type, v);
           popLastInstruction();
         }
@@ -2455,13 +2451,13 @@ string call_procedure(struct expr* method_name, struct expr* args){
   string args_v(args->v);
   for (int i = 0; i < args_v.length(); i++) {
     if (args_v[i] == ',') {
-      pushInstruction("param", temp, "_", "_");
+      pushInstruction("push", temp, "_", "_");
       temp = "";
     } else {
       temp += args_v[i];
     }
   }
-  pushInstruction("param", temp, "_", "_");
+  pushInstruction("push", temp, "_", "_");
   string v = "";
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
@@ -2714,8 +2710,8 @@ void optimizeTAC() {
 // 19. stackptr-=x        => <-stackptr,x,_,_>
 
 void dump3AC_pre(ofstream &fout, int i){
-  fout << "\tpush ebp" << endl;
-  fout << "\tebp = stackptr" << endl;
+  fout << "\tpush rbp" << endl;
+  fout << "\trbp = stackptr" << endl;
   int of=4;
   for(int j=methods[i].second.size()-1;j>-1;j--){
     struct expr *ep=methods[i].second[j];
@@ -2724,8 +2720,8 @@ void dump3AC_pre(ofstream &fout, int i){
       of+=size_map[ep->type];
       fout<<"\tstackptr -= "<<size_map[ep->type]<<endl;
     }
-    // fout<<"\t"<<ep->s<<" = +"<<of<<"(ebp)"<<endl;
-    fout<<"\t*(ebp - "<<x-4<<") = *(ebp + "<<of<<")"<<endl;
+    // fout<<"\t"<<ep->s<<" = +"<<of<<"(rbp)"<<endl;
+    fout<<"\t*(rbp - "<<x-4<<") = *(rbp + "<<of<<")"<<endl;
     // cout<<ep->type;
   }
 }
@@ -2745,10 +2741,10 @@ void dump3AC_post(ofstream &fout, int i, string ret){
     of+=size_map[ret_type];
   }
   if(ret!=""){
-    fout<<"*(ebp + "<<of<<") = "<<ret<<endl<<"\t";
+    fout<<"*(rbp + "<<of<<") = "<<ret<<endl<<"\t";
   }
-  fout<<"stackptr = ebp + "<<tmp<<endl;
-  fout<<"\tebp = *(ebp + 4)"<<endl;
+  fout<<"stackptr = rbp + "<<tmp<<endl;
+  fout<<"\trbp = *(rbp + 4)"<<endl;
   fout<<"\tret"<<endl;
 
 }
@@ -2774,7 +2770,7 @@ void dump3AC() {
       else if (ins[0].size() > 7 && ins[0].substr(0, 1) == "if" && ins[0].substr(ins[0].size()-4, 4) == "goto")
         fout << "if " << ins[1] << " " << ins[0].substr(2, ins[0].size()-6) << " " << ins[2] << " goto " << ins[3];
       else if (ins[0] == "param")
-        fout << "push " << ins[1];
+        fout << "param " << ins[1];
       else if (ins[0] == "call") {
         if (ins[1] == "System.out.println") {
           ins[1] = "print";
@@ -2829,12 +2825,28 @@ void dump3AC() {
   cout << "3AC generated" << endl;
 }
 
-
 void generateAssembly() {
-  ofstream fout("assembly.s");
-  fout << ".data" << endl;
+  ofstream fout("out.s");
+  fout << "\t.text" << endl;
+  fout << "\t.globl main" << endl;
+  
+  for (auto method : tac_code) {
+    // process each method
+    string method_name = method.first;
+    int sz = method_name.size();
+    if (method_name.size() >= 4 && method_name.substr(sz-4, 4) == "main") {
+      method_name = "main";
+    }
+    fout << method_name << ":" << endl;
+    for (auto itr : method.second) {
+      // process each instruction
+      cout << itr[0] << endl;
+      if (itr[0] == "push") {
+        fout << "\tpushq " << itr[1] << endl;
+      }
+    }
+  }
 }
-
 
 int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");
