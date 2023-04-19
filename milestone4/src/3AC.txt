@@ -11,6 +11,8 @@ Test1.sum:
 	t4 = t2 +int t3
 	*(%rbp - 12) = t4
 	t5 = *(%rbp - 12)
+	%eax = t5
+	ret
 	endfunc
 
 Test1.main:
@@ -66,5 +68,7 @@ Test1.main:
 	*(%rbp - 4) = t45
 	goto L3
 	L4:
+	%eax = 0
+	ret
 	endfunc
 

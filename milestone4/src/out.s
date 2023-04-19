@@ -13,6 +13,9 @@ sum:
 	addq	t3, t4
 	movq	t4, -12(%rbp)
 	movq	-12(%rbp), t5
+	movq	t5, %eax
+	leave
+	ret
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
@@ -69,3 +72,6 @@ main:
 	movq	t45, -4(%rbp)
 	jmp	.L3
 .L4:
+	movq	$0, %eax
+	leave
+	ret

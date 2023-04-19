@@ -2762,6 +2762,7 @@ void dump3AC() {
     for (int j = 0; j < tac_code[i].second.size(); j++) {
       vector<string> ins = tac_code[i].second[j];
       if (ins[0] == "return") {
+        dump3AC_post(fout,i,ins[1]);
         continue;
       }
       fout << "\t";
@@ -2785,8 +2786,6 @@ void dump3AC() {
           fout << ins[3] << " = call " << ins[1] << " " << ins[2];
       } else if(ins[0] == "push")
         fout << "push "<< ins[1];
-      else if (ins[0] == "return")
-        dump3AC_post(fout,i,ins[1]);
       else if (ins[0] == "[] rhs")
         fout << ins[3] << " = " << ins[1] << "[" << ins[2] << "]";
       else if (ins[0] == "[] lhs")
