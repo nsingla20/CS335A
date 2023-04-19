@@ -20,6 +20,7 @@
 // while tac - done
 // break continue - done
 // array size - done
+// assumption - a fn can have atmost 6 arguments
 
 // TODO
 // String support
@@ -603,8 +604,8 @@ un_name:
             type = "unknown type";
           int offset = lookupOffset(string($1->s));
           // string v1 = storeTemp("getOffset(" + string($1->s) + ")", "", "_");
-          // string v2 = storeTemp("* rhs", "rbp", v1);
-          string v2 = storeTemp("* rhs", "(rbp - "+to_string(offset)+")","_");
+          // string v2 = storeTemp("* rhs", "%rbp", v1);
+          string v2 = storeTemp("* rhs", "(%rbp - "+to_string(offset)+")","_");
           copyData(&$$, string($1->s), type, v2);
         }
 | un_name TOK_46 TOK_IDENTIFIER     {
@@ -773,7 +774,9 @@ variable_declarator:
               int sz = getArraySize($2->v);
               int base_size = symbol_table[cur_table_idx].table[symbol].size;
               symbol_table[cur_table_idx].size -= base_size;
+              symbol_table[cur_table_idx].table[symbol].offset -= base_size;
               symbol_table[cur_table_idx].table[symbol].size = sz*base_size;
+              symbol_table[cur_table_idx].table[symbol].offset += sz*base_size;
               symbol_table[cur_table_idx].size += sz*base_size;
               updateSize(sz*base_size - base_size);
             }
@@ -786,9 +789,8 @@ eq_variable_initializer.opt:
 ;
 variable_declarator_id:
   TOK_IDENTIFIER dims.opt   {
-                int offset = getCurSize();
+                int offset = getCurSize() + cur_size;
                 if (param_declaration == 0) {
-
                   string type = cur_type + string($2->s);
                   struct info cur_info = createInfo(type, "variable", cur_size, offset, yylineno, modifiers);
                   updateSize(cur_size);
@@ -796,9 +798,9 @@ variable_declarator_id:
                   symbol_table[cur_table_idx].size += cur_size;
                   // pushInstruction("param", to_string(cur_size), "_", "");
                   // pushInstruction("call", "allocmem", "1", "_");
-                  pushInstruction("-stackptr", to_string(cur_size), "_", "_");
+                  // pushInstruction("-", "%rsp", to_string(cur_size), "%rsp");
                 }
-                copyData(&$$, $1->s, $2->s, "*(rbp - "+to_string(offset)+")");
+                copyData(&$$, $1->s, $2->s, "*(%rbp - "+to_string(offset)+")");
               }
 ;
 dims.opt:
@@ -810,7 +812,13 @@ variable_initializer:
 | array_initializer
 ;
 method_declaration:
-  modifier.multiopt method_header method_body { cur_table_idx = symbol_table[cur_table_idx].parent; cur_method = -1; }
+  modifier.multiopt method_header method_body { 
+    int sz = symbol_table[cur_table_idx].size;
+    vector<string> allocate_mem = {"-", "%rsp", to_string(sz), "%rsp"};
+    tac_code[cur_method].second.insert(tac_code[cur_method].second.begin(), allocate_mem);
+    cur_table_idx = symbol_table[cur_table_idx].parent;
+    cur_method = -1;
+  }
 ;
 method_header:
   type TOK_IDENTIFIER {
@@ -874,7 +882,7 @@ com_formal_parameter.multiopt:
 formal_parameter:
   modifier.multiopt type variable_declarator_id {
                 string type = string($2->s) + string($3->type);
-                int offset = getCurSize();
+                int offset = getCurSize() + cur_size;
                 struct info cur_info = createInfo(type, "parameter", cur_size, offset, yylineno, modifiers);
                 updateSize(cur_size);
                 for (auto itr = symbol_table[cur_table_idx].parameters.begin(); itr != symbol_table[cur_table_idx].parameters.end(); itr++) {
@@ -1738,7 +1746,7 @@ assignment:
 left_hand_side:
   un_name  {
           string offset = to_string(lookupOffset(string($1->s)));
-          string v = "*(rbp - " + offset + ")";
+          string v = "*(%rbp - " + offset + ")";
           copyData(&$$, string($1->s), $1->type, v);
           popLastInstruction();
         }
@@ -1809,8 +1817,8 @@ inclusive_or_expression:
 | inclusive_or_expression TOK_124 exclusive_or_expression	 {
           string v = storeTemp("|", $1->v, $3->v);
           copyData(&$$, string($1->s) + " | " + string($3->s), "int", v);
-          specificTypeCheck($1->type, "boolean", "|");
-          specificTypeCheck($3->type, "boolean", "|");
+          specificTypeCheck($1->type, "int", "|");
+          specificTypeCheck($3->type, "int", "|");
         }
 ;
 exclusive_or_expression:
@@ -1818,8 +1826,8 @@ exclusive_or_expression:
 | exclusive_or_expression TOK_94 and_expression  {
           string v = storeTemp("^", $1->v, $3->v);
           copyData(&$$, string($1->s) + " ^ " + string($3->s), "int", v);
-          specificTypeCheck($1->type, "boolean", "^");
-          specificTypeCheck($3->type, "boolean", "^");
+          specificTypeCheck($1->type, "int", "^");
+          specificTypeCheck($3->type, "int", "^");
         }
 ;
 and_expression:
@@ -1827,8 +1835,8 @@ and_expression:
 | and_expression TOK_38 equality_expression	  {
           string v = storeTemp("&", $1->v, $3->v);
           copyData(&$$, string($1->s) + " & " + string($3->s), "int", v);
-          specificTypeCheck($1->type, "boolean", "&");
-          specificTypeCheck($3->type, "boolean", "&");
+          specificTypeCheck($1->type, "int", "&");
+          specificTypeCheck($3->type, "int", "&");
         }
 ;
 equality_expression:
@@ -2370,6 +2378,7 @@ int get_meth(string method_name){
   }
   return i;
 }
+
 int checkMethodArgs(string method_name, string args) {
   // cout<<args<<endl;
   vector<string> params_list;
@@ -2406,29 +2415,6 @@ int checkMethodArgs(string method_name, string args) {
   return args_list.size();
 }
 
-// string find_type_expr(string meth){
-//   int l=meth.length();
-//   if(l==0)return "";
-//   int i = meth.find('.');
-//   if(i==string::npos){
-//     i=l-1;
-//   }
-//   string tmp = meth.substr(0,i);
-//   string after = meth.substr(i+1,l-i-1);
-//   if(tmp=="this"||tmp=="super"){
-//     int cur_table_idx_b = cur_table_idx;
-//     while(symbol_table[cur_table_idx].class_table==0)cur_table_idx = symbol_table[cur_table_idx].parent;
-//     string ans;
-//     if(tmp=="this"){
-//       ans=find_type_expr(after);
-//     }else{
-
-//     }
-//     cur_table_idx = cur_table_idx_b;
-//   }
-
-// }
-
 string call_procedure(struct expr* method_name, struct expr* args){
   string meth = method_name->s;
   int arg_cnt = checkMethodArgs(meth, args->type);
@@ -2446,26 +2432,28 @@ string call_procedure(struct expr* method_name, struct expr* args){
   if(size_map.find(meth_ret_type)!=size_map.end()){
     ret_size=size_map[meth_ret_type];
   }
-  if(ret_size)pushInstruction("-stackptr", to_string(ret_size), "_", "_");
+  if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
   string temp = "";
   string args_v(args->v);
+  vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
+  int reg_cnt = 0;
   for (int i = 0; i < args_v.length(); i++) {
     if (args_v[i] == ',') {
-      pushInstruction("push", temp, "_", "_");
+      pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
       temp = "";
     } else {
       temp += args_v[i];
     }
   }
-  pushInstruction("push", temp, "_", "_");
+  pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
   string v = "";
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
   else{
     pushInstruction("call", meth, to_string(arg_cnt), "_");
     v = "t" + to_string(tmp_count++);
-    pushInstruction("* rhs", "(stackptr + "+to_string(ret_size)+")", "_", v);
-    pushInstruction("+stackptr", to_string(ret_size), "_", "_");
+    pushInstruction("_", "\%eax", "_", v);
+    // pushInstruction("+", "%rsp", to_string(ret_size), "%rsp");
   }
   return v;
 }
@@ -2689,39 +2677,45 @@ void optimizeTAC() {
 }
 
 // 3AC forms -
-// 1. x = y               => <_, y, _, x>
+// 1d. x = y               => <_, y, _, x>
 // 2. x = op y            => <op, y, _, x>
 // 3. x = y op z          => <op, y, z, x>
-// 4. L:                  => <label, _, _, L>
-// 5. goto L              => <goto, _, _, L>
+// 4d. L:                  => <label, _, _, L>
+// 5d. goto L              => <goto, _, _, L>
 // 6. if x goto L         => <if goto, x, _, L>
 // 7. if x relop y goto L => <if relop goto, x, y, L>
-// 8. parampush x             => <param, x, _, _>
+// 8. parampush x         => <param, x, _, _>
 // 9. call p, n           => <call, p, n, _>
 // 10. y = call p, n      => <call, p, n, y>
 // 11. return y           => <return, y, _, _>
 // 12. x = y[i]           => <[] rhs, y, i, x>
 // 13. x[i] = y           => <[] lhs, y, i, x>
 // 14. x = &y             => <&, y, _, x>
-// 15. x = *y             => <* rhs, y, _, x>
-// 16. *x = y             => <* lhs, y, _, x>
-// 17. push r             => <push, r, _, _>
-// 18. stackptr+=x        => <+stackptr,x,_,_>
-// 19. stackptr-=x        => <-stackptr,x,_,_>
+// 15d. x = *y             => <* rhs, y, _, x>
+// 16d. *x = y             => <* lhs, y, _, x>
+// 17d. push r             => <push, r, _, _>
+// 18d. ret                => <ret,_,_,_>
 
 void dump3AC_pre(ofstream &fout, int i){
-  fout << "\tpush rbp" << endl;
-  fout << "\trbp = stackptr" << endl;
+  // fout << "\tpush %rbp" << endl;
+  // fout << "\t%rbp = %rsp" << endl;
+  int cnt = 0;
+  tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"push", "%rbp", "_", "_"});
+  tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"_", "%rsp", "_", "%rbp"});
+  cnt++;
   int of=4;
+  vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
   for(int j=methods[i].second.size()-1;j>-1;j--){
     struct expr *ep=methods[i].second[j];
     int x=of;
     if(size_map.find(ep->type)!=size_map.end()){
       of+=size_map[ep->type];
-      fout<<"\tstackptr -= "<<size_map[ep->type]<<endl;
+      // tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"-", "%rsp", to_string(size_map[ep->type]), "%rsp"});
+      // fout<<"\t%rsp -= "<<size_map[ep->type]<<endl;
     }
-    // fout<<"\t"<<ep->s<<" = +"<<of<<"(rbp)"<<endl;
-    fout<<"\t*(rbp - "<<x-4<<") = *(rbp + "<<of<<")"<<endl;
+    // fout<<"\t"<<ep->s<<" = +"<<of<<"(%rbp)"<<endl;
+    tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"* lhs", args_reg[j], "_", "(%rbp - " + to_string(x) + ")"});
+    // fout<<"\t*(%rbp - "<<x-4<<") = *(%rbp + "<<of<<")"<<endl;
     // cout<<ep->type;
   }
 }
@@ -2741,11 +2735,15 @@ void dump3AC_post(ofstream &fout, int i, string ret){
     of+=size_map[ret_type];
   }
   if(ret!=""){
-    fout<<"*(rbp + "<<of<<") = "<<ret<<endl<<"\t";
+    tac_code[i].second.push_back({"_", ret, "_", "\%eax"});
+    // fout<<"*(%rbp + "<<of<<") = "<<ret<<endl<<"\t";
   }
-  fout<<"stackptr = rbp + "<<tmp<<endl;
-  fout<<"\trbp = *(rbp + 4)"<<endl;
-  fout<<"\tret"<<endl;
+  // tac_code[i].second.push_back({"+", "%rbp", to_string(tmp), "%rsp"});
+  // tac_code[i].second.push_back({"* rhs", "(%rbp + 4)", "_", "%rbp"});
+  tac_code[i].second.push_back({"ret", "_", "_", "_"});
+  // fout<<"%rsp = %rbp + "<<tmp<<endl;
+  // fout<<"\t%rbp = *(%rbp + 4)"<<endl;
+  // fout<<"\tret"<<endl;
 
 }
 
@@ -2758,6 +2756,9 @@ void dump3AC() {
     fout << method << ":" << endl;
     fout << "\tbeginfunc" << endl;
     dump3AC_pre(fout,i);
+    if (tac_code[i].second.size() == 0 || tac_code[i].second[tac_code[i].second.size()-1][0] != "return") {
+      dump3AC_post(fout,i,"");
+    }
     for (int j = 0; j < tac_code[i].second.size(); j++) {
       vector<string> ins = tac_code[i].second[j];
       fout << "\t";
@@ -2779,13 +2780,9 @@ void dump3AC() {
           fout << "call " << ins[1] << " " << ins[2];
         else
           fout << ins[3] << " = call " << ins[1] << " " << ins[2];
-      }else if(ins[0] == "push"){
+      } else if(ins[0] == "push")
         fout << "push "<< ins[1];
-      }else if(ins[0] == "+stackptr"){
-        fout << "stackptr += "<< ins[1];
-      }else if(ins[0] == "-stackptr"){
-        fout << "stackptr -= "<< ins[1];
-      }else if (ins[0] == "return")
+      else if (ins[0] == "return")
         dump3AC_post(fout,i,ins[1]);
       else if (ins[0] == "[] rhs")
         fout << ins[3] << " = " << ins[1] << "[" << ins[2] << "]";
@@ -2807,6 +2804,8 @@ void dump3AC() {
       }
       else if (ins[0] == "_")
         fout << ins[3] << " = " << ins[1];
+      else if (ins[0] == "ret")
+        fout << "ret";
       else {
         if (ins[2] == "_")
           fout << ins[3] << " = " << ins[0] << " " << ins[1];
@@ -2815,20 +2814,48 @@ void dump3AC() {
       }
       fout << endl;
     }
-    if (tac_code[i].second.size() == 0 || tac_code[i].second[tac_code[i].second.size()-1][0] != "return") {
-      fout<<'\t';
-      dump3AC_post(fout,i,"");
-    }
     fout << "\tendfunc\n" << endl;
   }
   fout.close();
   cout << "3AC generated" << endl;
 }
 
+void updateOperands(vector<string> &ins) {
+  for (int i = 0; i < 4; i++) {
+    if (ins[i].size() == 0 || ins[i] == "_")
+      continue;
+    if (ins[i][0] <= '9' && ins[i][0] >= '0') {
+      // constant: 9 -> $9
+      ins[i] = "$" + ins[i];
+    }
+    if (ins[i][0] == '(' || (ins[i].size() >= 2 && ins[i].substr(0, 2) == "*(")) {
+      // address: (a + 4) -> 4(a)
+      string base_addr = "", offset = "";
+      bool is_base_addr = true;
+      int j = ins[i].find('(') + 1;
+      for (; j < ins[i].size()-1; j++) {
+        if (ins[i][j] == ' ')
+          continue;
+        if (ins[i][j] == '+' || ins[i][j] == '-') {
+          is_base_addr = false;
+          offset += ins[i][j];
+          continue;
+        }
+        if (is_base_addr) {
+          base_addr += ins[i][j];
+        } else {
+          offset += ins[i][j];
+        }
+      }
+      ins[i] = offset + "(" + base_addr + ")";
+    }
+  }
+}
+
 void generateAssembly() {
   ofstream fout("out.s");
   fout << "\t.text" << endl;
-  fout << "\t.globl main" << endl;
+  fout << "\t.globl\tmain" << endl;
   
   for (auto method : tac_code) {
     // process each method
@@ -2840,10 +2867,82 @@ void generateAssembly() {
     fout << method_name << ":" << endl;
     for (auto itr : method.second) {
       // process each instruction
-      cout << itr[0] << endl;
+      updateOperands(itr);
+      
+      // PROLOGUE and RETURN INSTRUCTIONS
       if (itr[0] == "push") {
-        fout << "\tpushq " << itr[1] << endl;
+        // push to stack
+        fout << "\tpushq\t" << itr[1] << endl;
+      } else if (itr[0] == "ret") {
+        // return instruction
+        fout << "\tleave" << endl;
+        fout << "\tret" << endl;
       }
+
+      // OPERATORS
+      else if (itr[0] == "_" || itr[0] == "* lhs" || itr[0] == "* rhs") {
+        // assignment - TODO: movq vs movl vs movb...
+        fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
+      } else if (itr[0][0] == '-' || itr[0][0] == '+') {
+        // add or subtract
+        string op = itr[0][0] == '-' ? "subq" : "addq";
+        if (itr[2] == "_") {
+          // x = +y or x = -y
+          fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
+          if (op == "subq")
+            fout << "\tnegq\t" << itr[3] << endl;
+        } else if (itr[1] == itr[3]) {
+          // x = x + y or x = x - y
+          fout << "\t" + op + "\t" << itr[2] << ", " << itr[3] << endl;
+        } else {
+          // x = y - z or x = y - z
+          fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
+          fout << "\t" + op + "\t" << itr[2] << ", " << itr[3] << endl;
+        }
+      } else if (itr[0][0] == '*' || itr[0][0] == '/') {
+        // CHECK: multiply or divide
+        string op = itr[0][0] == '*' ? "imulq" : "idivq";
+        if (itr[1] == itr[3]) {
+          // x = x * y or x = x / y
+          fout << "\t" + op + "\t" << itr[2] << endl;
+        } else {
+          // x = y * z or x = y / z
+          fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
+          fout << "\t" + op + "\t" << itr[2] << endl;
+        }
+      } else if (itr[0] == "<<" || itr[0] == ">>" || itr[0] == "&" || itr[0] == "|" || itr[0] == "^") {
+        // left/right shift, bitwise and/or/xor
+        string op = "<<";
+        if (itr[0] == ">>")
+          op = "sarq";
+        else if (itr[0] == "&")
+          op = "andq";
+        else if (itr[0] == "|")
+          op = "orq";
+        else if (itr[0] == "^")
+          op = "xorq";
+        fout << "\tmovq\t" << itr[1] << ", %rax" << endl;
+        fout << "\tmovq\t" << itr[2] << ", %rcx" << endl;
+        fout << "\t" + op + "\t%rcx, %rax" << endl;
+        fout << "\tmovq\t%rax, " << itr[3] << endl;
+      }
+
+      // CONTROL FLOW
+      else if (itr[0] == "label") {
+        // label
+        fout << "." << itr[3] << ":" << endl;
+      } else if (itr[0] == "goto") {
+        // unconditional jump
+        fout << "\tjmp\t" << "." << itr[3] << endl;
+      } else if (itr[0][0] == '<' || itr[0][0] == '>' || itr[0] == "==" || itr[0] == "!=") {
+        // conditional jump
+        // ASSUMPTION: one comparison then not operator then jump
+        // e.g.
+        //    t12 = t10 > t11
+        //    t13 = ! t12
+        //    if t13 goto L1
+
+      } 
     }
   }
 }

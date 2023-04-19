@@ -1,28 +1,48 @@
-GFG.main:
+Test1.main:
 	beginfunc
-	push ebp
-	ebp = stackptr
-	stackptr -= 4
-	*(ebp - 0) = 4
-	stackptr -= 4
-	*(ebp - 4) = 3
-	stackptr -= 4
-	*(ebp - 8) = 8
-	stackptr -= 4
-	*(ebp - 12) = 7
-	t1 = *(ebp - 0)
-	t2 = t1 > 2
-	t3 = ! t2
-	if t3 goto L1
-	t5 = *(ebp - 4)
-	t6 = t5 +int 1
-	*(ebp - 4) = t6
+	push %rbp
+	%rbp = %rsp
+	%rsp = %rsp - 16
+	*(%rbp - 4) = 1
+	*(%rbp - 8) = 2
+	*(%rbp - 12) = 3
+	t5 = *(%rbp - 4)
+	t6 = t5 *int 10
+	t7 = 15 +int t6
+	t8 = *(%rbp - 12)
+	t9 = t7 +int t8
+	*(%rbp - 8) = t9
+	t10 = *(%rbp - 4)
+	t11 = *(%rbp - 8)
+	t12 = t10 > t11
+	t13 = ! t12
+	if t13 goto L1
+	t15 = *(%rbp - 4)
+	t18 = t15 +int 
+	*(%rbp - 8) = t18
+	goto L2
 	L1:
-	stackptr -= 4
-	t7 = 8 % 3
-	*(ebp - 16) = t7
-	stackptr = ebp + 4
-	ebp = *(ebp + 4)
+	t20 = *(%rbp - 4)
+	t21 = *(%rbp - 8)
+	t22 = t20 +int t21
+	*(%rbp - 8) = t22
+	L2:
+	*(%rbp - 16) = 0
+	L3:
+	t23 = *(%rbp - 16)
+	t24 = t23 < 15
+	t25 = ! t24
+	if t25 goto L4
+	t29 = *(%rbp - 16) +int 1
+	*(%rbp - 16) = t29
+	t31 = *(%rbp - 4)
+	t32 = *(%rbp - 8)
+	t33 = t31 +int t32
+	*(%rbp - 4) = t33
+	goto L3
+	L4:
+	
+	%eax = 0
 	ret
 	endfunc
 

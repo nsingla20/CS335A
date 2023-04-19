@@ -6,7 +6,6 @@
 	.ascii "%d\0"
 	.text
 	.globl	main
-	.def	main;	.scl	2;	.type	32;	.endef
 main:
 	pushq	%rbp             	; push rbp to stack (implicitly subtracts 8 from rsp)
 	movq	%rsp, %rbp			; move rsp to rbp (q = quad word = 64 bits)
