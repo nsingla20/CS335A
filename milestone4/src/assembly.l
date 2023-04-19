@@ -12,7 +12,7 @@ MethodName      [a-zA-Z0-9.]*:\n
 Identifier      [a-zA-Z0-9. ]*
 Stackptr        [ ]*"stackptr"[ ]*
 Assignment      [a-zA-Z]+[= ]+[a-zA-Z]+[^\n]
-Sign            [=\-\+\%]+
+Sign            [=\-\+\%>!]+
 Offbp           \*\([a-z]+[-+ ]+[0-9]+\)
 
 

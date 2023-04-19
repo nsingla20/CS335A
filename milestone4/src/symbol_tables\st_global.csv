@@ -1,0 +1,8 @@
+Global Symbol Table
+Package Name: 
+Imports: 
+
+Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
+GFG,,class,0,0,1,,0
+String,,class,0,0,0,,0
+System,,class,0,0,0,,0

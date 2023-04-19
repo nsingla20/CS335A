@@ -5463,13 +5463,7 @@ void dump3AC() {
   cout << "3AC generated" << endl;
 }
 
-void dump_assembly(){
-  ofstream fout("assembly.s");
-  fout<<".section    .rodata\n.LC0:\n\t.string    \"%d\\n\"\n\t.text\n\t.globl    main\n";
 
-
-
-}
 
 int main(int argc, char *argv[]) {
 	yyin = fopen(argv[1], "r");
@@ -5480,6 +5474,5 @@ int main(int argc, char *argv[]) {
 	fclose(yyin);
   print_symbol_table();
   dump3AC();
-  dump_assembly();
 	return 0;
 }

@@ -15,12 +15,18 @@ GFG.main:
 	+8(%ebp) = 8
 	%rsp-= 4
 	+12(%ebp) = 7
-	%rsp-= 4
-	t1 = 8 % 3
-	+16(%ebp) = t1
-	t3 = +16(%ebp)
-	push t3
-	call print 1
+	t1 = +0(%ebp)
+	t2 = t1 > 2
+	t3 = ! t2
+	if t3 goto L1
+	t5 = +4(%ebp)
+	t6 = t5 +int 1
+	+4(%ebp) = t6
+	
+L1:
+%rsp-= 4
+	t7 = 8 % 3
+	+16(%ebp) = t7
 	%rsp= ebp + 4
 	ebp = -4(%ebp)
 	ret

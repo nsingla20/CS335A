@@ -1,0 +1,10 @@
+Method: main
+Return Type: void
+Parameters: 
+
+Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
+a,int,variable,4,0,20,,1
+b,int,variable,4,4,20,,1
+c,int,variable,4,8,20,,1
+d,int,variable,4,16,24,,1
+f,int,variable,4,12,20,,1
