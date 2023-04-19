@@ -1,7 +1,0 @@
-Class: BubbleSort
-Parent Class: 
-
-Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
-foo,int,method,0,0,52,public final ,0
-main,void,method,0,0,2,static public ,0
-rec,int,method,0,0,56,public ,0
