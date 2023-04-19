@@ -8,6 +8,7 @@ Changes in 3ac code:
     rbp -> %rbp
     stackptr -> %rsp
     offset starts from positive value (not 0 i.e. includes cur var size)
+    changed size of byte, short, int, char to 8 bytes
 
 Note - final output is stored in out.s (currently checking on test_1.java)
 

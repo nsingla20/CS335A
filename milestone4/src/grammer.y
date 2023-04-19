@@ -97,14 +97,14 @@ vector<pair<string,vector<struct expr*>>> methods;     //methods and there argum
 map<string,string> meth_and_ret;
 
 map<string,int> size_map = {
-  {"byte", 1},
-  {"short", 2},
-  {"int", 4},
+  {"byte", 8},
+  {"short", 8},
+  {"int", 8},
   {"long", 8},
   {"float", 4},
   {"double", 8},
   {"boolean", 1},
-  {"char", 2},
+  {"char", 8},
   {"void", 0},
   {"reference", 0},
   {"null", 0},
@@ -552,11 +552,11 @@ numeric_type:
 | floating_point_type	        { copyString(&($$->s), string($1->s)); }
 ;
 integral_type:
-  TOK_byte            { cur_size = 1; }
-| TOK_short           { cur_size = 2; }
-| TOK_int             { cur_size = 4; }
+  TOK_byte            { cur_size = 8; }
+| TOK_short           { cur_size = 8; }
+| TOK_int             { cur_size = 8; }
 | TOK_long            { cur_size = 8; }
-| TOK_char            { cur_size = 2; }
+| TOK_char            { cur_size = 8; }
 ;
 floating_point_type:
   TOK_float           { cur_size = 4; }
@@ -2445,14 +2445,21 @@ string call_procedure(struct expr* method_name, struct expr* args){
       temp += args_v[i];
     }
   }
-  pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
   string v = "";
+  if (meth == "System.out.println") {
+    meth = "printf@PLT";
+    pushInstruction("_", temp, "_", "%rsi");
+    pushInstruction("leaq", ".LC0(%rip)", "_", "%rdi");
+    pushInstruction("_", "0", "_", "%rax");
+  } else {
+    pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
+  }
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
   else{
     pushInstruction("call", meth, to_string(arg_cnt), "_");
     v = "t" + to_string(tmp_count++);
-    pushInstruction("_", "\%eax", "_", v);
+    pushInstruction("_", "\%rax", "_", v);
     // pushInstruction("+", "%rsp", to_string(ret_size), "%rsp");
   }
   return v;
@@ -2703,7 +2710,7 @@ void dump3AC_pre(ofstream &fout, int i){
   tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"push", "%rbp", "_", "_"});
   tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"_", "%rsp", "_", "%rbp"});
   cnt++;
-  int of=4;
+  int of=8;
   vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
   for(int j=methods[i].second.size()-1;j>-1;j--){
     struct expr *ep=methods[i].second[j];
@@ -2736,7 +2743,7 @@ void dump3AC_post(ofstream &fout, int i,int j, string ret){
   }
   tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"ret", "_", "_", "_"});
   if(ret!=""){
-    tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"_", ret, "_", "%eax"});
+    tac_code[i].second.insert(tac_code[i].second.begin()+j+1,{"_", ret, "_", "%rax"});
     // fout<<"*(%rbp + "<<of<<") = "<<ret<<endl<<"\t";
   }
   // tac_code[i].second.push_back({"+", "%rbp", to_string(tmp), "%rsp"});
@@ -2824,10 +2831,7 @@ void dump3AC() {
   fout.close();
   cout << "3AC generated" << endl;
 }
-void updateRegisters(vector<string> &ins) {
-  vector<string> regs={"%rsi","%rdi","%rdx","%rcx","%r8","%r9","%r10","%r11"};
 
-}
 void updateOperands(vector<string> &ins) {
   for (int i = 0; i < 4; i++) {
     if (ins[i].size() == 0 || ins[i] == "_")
@@ -2862,15 +2866,15 @@ void updateOperands(vector<string> &ins) {
 
 void allocate_regs(vector<vector<string>> &ins) {
   vector<string> callee_regs = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9", "%r10", "%r11"};
-  vector<string> caller_regs = {"%rbx", "%rbp", "%r12", "%r13", "%r14", "%r15"};
-  set<int> avl_caller_regs, avl_callee_regs;
+  set<int> avl_callee_regs;
   for (int i = 0; i < 8; i++) {
     avl_callee_regs.insert(i);
   }
-  for (int i = 0; i < 6; i++) {
-    avl_caller_regs.insert(i);
-  }
   map<string, int> last_line_used, reg_map;
+  map<int, string> reg_to_var;
+  vector<int> last_used(8, -1);
+  map<string, int> offset;
+  int used_mem = 0;
   for (int i = 0; i < ins.size(); i++) {
     for (int j = 0; j < 3; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
@@ -2879,21 +2883,79 @@ void allocate_regs(vector<vector<string>> &ins) {
     }
   }
   for (int i = 0; i < ins.size(); i++) {
+    // if (ins[i][0] == "call") {
+    //   int cnt = 0;
+    //   stack<string> saved_regs;
+    //   // save used callee registers in the stack
+    //   for (int j = 0; j < 8; j++) {
+    //     if (avl_callee_regs.find(j) == avl_callee_regs.end()) {
+    //       ins.insert(ins.begin() + i + cnt++, {"pushq", callee_regs[j], "_", "_"});
+    //       saved_regs.push(callee_regs[j]);
+    //     }
+    //   }
+    //   cnt++;
+    //   // load the saved registers
+    //   while (!saved_regs.empty()) {
+    //     ins.insert(ins.begin() + i + cnt++, {"popq", saved_regs.top(), "_", "_"});
+    //     saved_regs.pop();
+    //   }
+    // }
     for (int j = 1; j < 4; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
         if (reg_map.find(ins[i][j]) == reg_map.end()) {
           // allocate a register
-          int reg = *avl_caller_regs.begin();
-          avl_caller_regs.erase(reg);
+          if (avl_callee_regs.size() == 0) {
+            cout << "Error: No registers available" << endl;
+            // save a register in the stack, and load it later
+            // use the register that is not used for the longest time
+            int reg = -1, max_last_used = 10000;
+            for (int k = 0; k < 8; k++) {
+              if (last_used[k] < max_last_used) {
+                max_last_used = last_used[k];
+                reg = k;
+              }
+            }
+            // save the register in the stack
+            ins.insert(ins.begin() + i, {"pushq", callee_regs[reg], "_", "_"});
+            used_mem += 8;
+            // make the register available
+            avl_callee_regs.insert(reg);
+            // update reg map
+            reg_map[reg_to_var[reg]] = -1;
+            for (auto it = offset.begin(); it != offset.end(); it++) {
+              it->second += 8;
+            }
+            offset[reg_to_var[reg]] = 0;
+          }
+          int reg = *avl_callee_regs.begin();
+          avl_callee_regs.erase(reg);
           reg_map[ins[i][j]] = reg;
+          reg_to_var[reg] = ins[i][j];
+        }
+        else if (reg_map[ins[i][j]] == -1) {
+          // load the register from the stack
+          int reg = *avl_callee_regs.begin();
+          avl_callee_regs.erase(reg);
+          reg_map[ins[i][j]] = reg;
+          reg_to_var[reg] = ins[i][j];
+          ins.insert(ins.begin() + i, {"_", "(%rsp + " + to_string(offset[ins[i][j]]) + ")", callee_regs[reg], "_"});
+          offset.erase(ins[i][j]);
+          if (offset.size() == 0) {
+            ins.insert(ins.begin() + i+1, {"+", to_string(used_mem), "%rsp", "%rsp"});
+            used_mem = 0;
+          }
         }
         // replace the temporary variable with the register
+        string temp_var = ins[i][j];
         ins[i][j] = callee_regs[reg_map[ins[i][j]]];
+        last_used[reg_map[temp_var]] = i;
 
         // free the register if it is not used later
-        if (last_line_used[ins[i][j]] == i) {
+        if (last_line_used[temp_var] <= i) {
           int reg = reg_map[ins[i][j]];
           avl_callee_regs.insert(reg);
+          reg_to_var.erase(reg);
+          last_used[reg] = -1;
         }
       }
     }
@@ -2902,7 +2964,9 @@ void allocate_regs(vector<vector<string>> &ins) {
 
 void generateAssembly() {
   ofstream fout("out.s");
-  fout << "\t.text" << endl;
+  fout << "\t.section .rdata" << endl;
+  fout << ".LC0:" << endl;
+  fout << "\t.string\t\"%d\\n\"" << endl;
   fout << "\t.globl\tmain" << endl;
 
   for (auto method : tac_code) {
@@ -2921,7 +2985,7 @@ void generateAssembly() {
       updateOperands(itr);
 
       // PROLOGUE and RETURN INSTRUCTIONS
-      if (itr[0] == "push") {
+      if (itr[0].size() >=4 && itr[0].substr(0,4) == "push") {
         // push to stack
         fout << "\tpushq\t" << itr[1] << endl;
       } else if (itr[0] == "ret") {
@@ -2951,16 +3015,13 @@ void generateAssembly() {
           fout << "\t" + op + "\t" << itr[2] << ", " << itr[3] << endl;
         }
       } else if (itr[0][0] == '*' || itr[0][0] == '/') {
-        // TODO: multiply or divide
+        // multiply or divide
         string op = itr[0][0] == '*' ? "imulq" : "idivq";
-        if (itr[1] == itr[3]) {
-          // x = x * y or x = x / y
-          // fout << "\t" + op + "\t" << itr[2] << endl;
-        } else {
-          // x = y * z or x = y / z
-          // fout << "\tmovq\t" << itr[1] << ", " << itr[3] << endl;
-          // fout << "\t" + op + "\t" << itr[2] << endl;
-        }
+        string hold = "movq";
+        fout<< "\t" << "movq"<< "\t" << itr[2] << ", \%r12" << endl;
+        fout << "\t" << "movq"<< "\t" << itr[1] << ", \%rax" << endl;
+        fout<< "\t" + op + "\t" << "\%r12" << endl;
+        fout << "\t" << "movq" << "\t\%rax, " << itr[3] << endl;
       } else if (itr[0] == "<<" || itr[0] == ">>" || itr[0] == "&" || itr[0] == "|" || itr[0] == "^") {
         // left/right shift, bitwise and/or/xor
         string op = "<<";
@@ -3021,10 +3082,12 @@ void generateAssembly() {
           fout << "\tcall " <<itr[1]<<endl;
         }else{
           fout << "\tcall" <<itr[1]<<endl;
-          fout << "\tmovq %eax "<<itr[2]<<endl;
+          fout << "\tmovq %rax "<<itr[2]<<endl;
         }
       } else if (itr[0] == "return") {
         continue;
+      } else if (itr[0] == "leaq") {
+        fout << "\tleaq\t" << itr[1] << ", " << itr[3] << endl;
       }
 
       else {
