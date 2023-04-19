@@ -2417,6 +2417,19 @@ int checkMethodArgs(string method_name, string args) {
 
 string call_procedure(struct expr* method_name, struct expr* args){
   string meth = method_name->s;
+  if (meth == "System.out.println") {
+    string temp = "";
+    string args_v(args->v);
+    int reg_cnt = 0;
+    for (int i = 0; i < args_v.length(); i++) {
+      if (args_v[i] == ',') {
+        pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
+        temp = "";
+      } else {
+        temp += args_v[i];
+      }
+    }
+  }
   int arg_cnt = checkMethodArgs(meth, args->type);
   int ret_size=0;
   // int i =get_meth(method_name->type);
@@ -2447,6 +2460,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
   }
   pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
   string v = "";
+  meth = symbol_table[symbol_table[meth_i].parent].name + "." + symbol_table[meth_i].name;
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
   else{
@@ -2908,25 +2922,30 @@ void allocate_regs(vector<vector<string>> &ins) {
   }
   map<string, int> last_line_used, reg_map;
   for (int i = 0; i < ins.size(); i++) {
-    for (int j = 0; j < 3; j++) {
+    for (int j = 0; j < 4; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
         last_line_used[ins[i][j]] = i;
       }
     }
   }
   for (int i = 0; i < ins.size(); i++) {
-    for (int j = 1; j < 4; j++) {
+    for (int j = 0; j < 4; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
         if (reg_map.find(ins[i][j]) == reg_map.end()) {
           // allocate a register
-          int reg = *avl_caller_regs.begin();
-          avl_caller_regs.erase(reg);
+          int reg = *avl_callee_regs.begin();
+          avl_callee_regs.erase(reg);
           reg_map[ins[i][j]] = reg;
         }
         // replace the temporary variable with the register
         ins[i][j] = callee_regs[reg_map[ins[i][j]]];
 
-        // free the register if it is not used later
+
+      }
+    }
+    for (int j = 0; j < 4; j++) {
+      // free the register if it is not used later
+      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
         if (last_line_used[ins[i][j]] == i) {
           int reg = reg_map[ins[i][j]];
           avl_callee_regs.insert(reg);
@@ -2949,8 +2968,8 @@ void generateAssembly() {
       method_name = "main";
     }
     fout << method_name << ":" << endl;
-    
-    allocate_regs(method.second);
+
+    // allocate_regs(method.second);
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       // process each instruction
