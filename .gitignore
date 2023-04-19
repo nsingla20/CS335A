@@ -43,5 +43,6 @@ milestone4/tests/*
 !milestone4/tests/*.c
 !milestone4/tests/*.s
 !milestone4/tests/*.sh
+!milestone4/tests/changes.txt
 
 .vscode
