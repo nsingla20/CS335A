@@ -12,7 +12,7 @@ MethodName      [a-zA-Z0-9.]*:\n
 Identifier      [a-zA-Z0-9. ]*
 Stackptr        [ ]*"stackptr"[ ]*
 Assignment      [a-zA-Z]+[= ]+[a-zA-Z]+[^\n]
-Sign            [=\-\+\%]+
+Sign            [=\-\+\%>!]+
 Offbp           \*\([a-z]+[-+ ]+[0-9]+\)
 
 
@@ -32,7 +32,7 @@ Offbp           \*\([a-z]+[-+ ]+[0-9]+\)
 {Offbp}       {//cout<<yytext<<"++++++\n";
                 string h(yytext);
                 string a;
-                int sign;
+                int sign = 0;
                 string reg;
                 for(int i = 0;i<h.size();i++){
                     if(h[i]>='a' && h[i] <= 'z'){
@@ -41,15 +41,19 @@ Offbp           \*\([a-z]+[-+ ]+[0-9]+\)
                     if(h[i]>='0' && h[i] <= '9'){
                         a+=h[i];
                     }
-                    if(h[i] == '-')sign=0;
-                    if(h[i] == '+')sign=1;
+                    if(h[i] == '-'){
+                        sign=0;
+                    }
+                    if(h[i] == '+'){
+                        sign=1;
+                    }
                 }
                 string p;
                 if(sign == 1){
-                    p = "-" + a + "(\%"+reg+")";
+                    p = "+" + a + "(\%"+reg+")";
                 }
                 else{
-                    p = "+" + a + "(\%"+reg+")";
+                    p = "-" + a + "(\%"+reg+")";
                 }
                 assembly[assembly.size() - 1]+=p;
                 }

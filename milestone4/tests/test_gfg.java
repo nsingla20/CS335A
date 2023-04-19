@@ -18,7 +18,10 @@ class GFG {
         // int y = 69,z=12,m=12,n=2;
         // int x = sum(1,2);
         int a=4,b=3,c=8,f = 7;
+        if(a>2){
+            b = b + 1;
+        }
         int d = 8 % 3;
-        System.out.println(d);
+        // System.out.println(d);
     }
 }

@@ -6,22 +6,24 @@
 #include <stdio.h>
 
 int main(){
-    int a, b, c;
-	a = 1, b = 2, c = 3;
-	b = 15 + a*10 + c;
-	if (a > b) {
-		b = a + (c % 10);
-	} else {
-		b = a + b;
+    int a=4,b=3,c=8,f = 7;
+	if(a>2){
+		b = b + 1;
 	}
-	// 	a = a + sum(b, c);
-	
-	for (int i = 0; i < 15; i++){
-		i += 1;
-		a = a + b;
-	}
-	// std::cout<<b<<"\n";
-	
-    printf("%d",b);
+	int d = 8 % 3;
+
+    // printf("%d",b);
     return 0;
 }
+
+
+/*
+
+base
+base - 4
+base - 8     f = 7
+base - 12    c = 8
+base - 16    b = 3
+base - 20    a = 4
+
+*/
