@@ -1,0 +1,260 @@
+BubbleSort.main:
+	beginfunc
+	push ebp
+	ebp = stackptr
+	*(ebp - 0) = *(ebp + 4)
+	stackptr -= 4
+	*(ebp - 0) = 10
+	stackptr -= 4
+	stackptr -= 4
+	stackptr -= 4
+	stackptr -= 4
+	stackptr -= 4
+	stackptr -= 8
+	stackptr -= 8
+	stackptr -= 8
+	stackptr -= 8
+	stackptr -= 4
+	*(ebp - 56) = {23,1,78,45,46,90,2,12,75,0}
+	stackptr -= 4
+	*(ebp - 96) = [10][10]
+	stackptr -= 8
+	*(ebp - 496) = [10][10][10]
+	stackptr -= 4
+	t2 = *(ebp - 8496)
+	t3 = t2 +int 2
+	t4 = *(ebp - 16)
+	t6 = (float) 10
+	t5 = t4 *float t6
+	t7 = t5 /float 1.2
+	t8 = *(ebp - 24)
+	t8 = t8 -double 1
+	t9 = t7 % t8
+	t11 = (float) t3
+	t10 = t11 +float t9
+	t12 = *(ebp - 32)
+	t13 = t12
+	t14 = t10 -float t13
+	*(ebp - 8496) = t14
+	t16 = *(ebp - 40)
+	t17 = *(ebp - 48)
+	t18 = t16 && t17
+	t19 = *(ebp - 40)
+	t20 = ! t19
+	t21 = t18 || t20
+	*(ebp - 0) = t21
+	t23 = *(ebp - 4)
+	t24 = t23 >> 2
+	t27 = 3 +int 
+	t28 = t24 << t27
+	t29 = t28 ^ 2
+	t30 = *(ebp - 4)
+	t31 = ~ t30
+	t32 = t29 | t31
+	*(ebp - 4) = t32
+	t34 = *(ebp - 0) + 21.2
+	*(ebp - 0) = t34
+	t36 = *(ebp - 0) % 12
+	*(ebp - 0) = t36
+	*(ebp - 8496) = 
+	t49 = *(ebp - 8496)
+	t50 = *(ebp - 0)
+	t51 = t49 == t50
+	t52 = ! t51
+	if t52 goto L1
+	t54 = *(ebp - 0)
+	*(ebp - 8496) = t54
+	goto L4
+	L1:
+	t55 = *(ebp - 8496)
+	t56 = *(ebp - 0)
+	t57 = t55 != t56
+	t58 = ! t57
+	if t58 goto L3
+	t60 = *(ebp - 0)
+	*(ebp - 8496) = t60
+	goto L4
+	L3:
+	t62 = *(ebp - 0)
+	*(ebp - 8496) = t62
+	L4:
+	t63 = *(ebp - 8496)
+	t64 = *(ebp - 0)
+	t65 = t63 < t64
+	t66 = ! t65
+	if t66 goto L6
+	t68 = *(ebp - 0)
+	*(ebp - 8496) = t68
+	goto L4
+	L6:
+	*(ebp - 4) = 0
+	L7:
+	t70 = *(ebp - 4)
+	t73 = t70 < 
+	t74 = ! t73
+	if t74 goto L8
+	*(ebp - 8) = 0
+	L10:
+	t78 = *(ebp - 8)
+	t79 = *(ebp - 0)
+	t80 = *(ebp - 4)
+	t81 = t79 -int t80
+	t82 = t81 -int 1
+	t83 = t78 < t82
+	t84 = ! t83
+	if t84 goto L11
+	t92 = array[d] > array[d + 1]
+	t93 = ! t92
+	if t93 goto L13
+	*(ebp - 12) = array[d]
+	array[d] = array[d + 1]
+	t105 = *(ebp - 12)
+	array[d + 1] = t105
+	L13:
+	goto L10
+	L11:
+	goto L7
+	L8:
+	push "hello \" world 'h' \" \n\t"
+	call print 1
+	*(ebp - 4) = 0
+	L14:
+	t108 = *(ebp - 4)
+	t109 = *(ebp - 0)
+	t110 = t108 < t109
+	t111 = ! t110
+	if t111 goto L15
+	push array[c]
+	call print 1
+	goto L14
+	L15:
+	stackptr -= 4
+	push 1
+	push 2
+	call foo 0
+	*(ebp - 8500) = 
+	stackptr -= 4
+	push 10
+	push 0
+	call rec 0
+	*(ebp - 8504) = 
+	stackptr = ebp + 4
+	ebp = *(ebp + 4)
+	ret
+	endfunc
+
+BubbleSort.foo:
+	beginfunc
+	push ebp
+	ebp = stackptr
+	stackptr -= 4
+	*(ebp - 0) = *(ebp + 8)
+	stackptr -= 4
+	*(ebp - 4) = *(ebp + 12)
+	t1 = *(ebp - 0)
+	t2 = *(ebp - 4)
+	t3 = t1 +int t2
+	*(ebp + 16) = t3
+	stackptr = ebp + 12
+	ebp = *(ebp + 4)
+	ret
+
+	endfunc
+
+BubbleSort.rec:
+	beginfunc
+	push ebp
+	ebp = stackptr
+	stackptr -= 4
+	*(ebp - 0) = *(ebp + 8)
+	stackptr -= 4
+	*(ebp - 4) = *(ebp + 12)
+	t1 = *(ebp - 0)
+	t2 = t1 <= 0
+	t3 = ! t2
+	if t3 goto L1
+	t4 = *(ebp - 4)
+	*(ebp + 16) = t4
+	stackptr = ebp + 12
+	ebp = *(ebp + 4)
+	ret
+
+	goto L2
+	L1:
+	t6 = *(ebp - 0)
+	t7 = t6 -int 1
+	t8 = *(ebp - 4)
+	t9 = t8 +int 1
+	stackptr -= 4
+	push t7
+	push t9
+	call rec 2
+	t10 = *(stackptr + 4)
+	stackptr += 4
+	*(ebp + 16) = t10
+	stackptr = ebp + 12
+	ebp = *(ebp + 4)
+	ret
+
+	L2:
+	stackptr = ebp + 12
+	ebp = *(ebp + 4)
+	ret
+	endfunc
+
+TypeCoercion.dummy:
+	beginfunc
+	push ebp
+	ebp = stackptr
+	stackptr -= 4
+	*(ebp - 0) = 100
+	stackptr -= 8
+	t1 = *(ebp - 0)
+	*(ebp - 4) = t1
+	stackptr -= 4
+	t2 = *(ebp - 4)
+	*(ebp - 12) = t2
+	stackptr -= 8
+	t3 = *(ebp - 4)
+	*(ebp - 16) = t3
+	stackptr -= 8
+	*(ebp - 24) = 3.141596
+	stackptr -= 8
+	t4 = *(ebp - 24)
+	t5 = (long) t4
+	*(ebp - 32) = t5
+	stackptr -= 4
+	t6 = *(ebp - 24)
+	t7 = (int) t6
+	*(ebp - 40) = t7
+	t9 = (short) 3.14F
+	t10 = "Dummy print: " + t9
+	push t10
+	call print 1
+	stackptr -= 8
+	t11 = *(ebp - 0)
+	t12 = *(ebp - 4)
+	t13 = t11 +int t12
+	t14 = *(ebp - 24)
+	t15 = *(ebp - 12)
+	t16 = t14 *float t15
+	t18 = (float) t13
+	t17 = t18 +float t16
+	t19 = *(ebp - 32)
+	t21 = (float) t19
+	t20 = t17 +float t21
+	t22 = *(ebp - 16)
+	t23 = t20 +float t22
+	t24 = *(ebp - 40)
+	t26 = (float) t24
+	t25 = t23 +float t26
+	*(ebp - 44) = t25
+	t28 = *(ebp - 44)
+	t29 = "Exp: " + t28
+	push t29
+	call print 1
+	stackptr = ebp + 4
+	ebp = *(ebp + 4)
+	ret
+	endfunc
+

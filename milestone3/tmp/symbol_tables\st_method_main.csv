@@ -1,0 +1,21 @@
+Method: main
+Return Type: void
+Parameters: args (type: String[]), 
+
+Symbol Name,Type,Kind,Size,Offset,Line Number,Modifier,Scope
+a,int,variable,4,8496,11,final ,1
+arr2,float[][],variable,400,96,8,final ,1
+arr3,double[][][],variable,8000,496,9,final ,1
+array,int[],variable,40,56,7,final ,1
+b1,boolean,variable,8,40,5,final ,1
+b2,boolean,variable,8,48,5,final ,1
+c,int,variable,4,4,3,final ,1
+d,int,variable,4,8,3,final ,1
+i,int,variable,4,8500,46,final ,1
+j,int,variable,4,8504,47,final ,1
+k1,double,variable,8,24,5,final ,1
+k2,double,variable,8,32,5,final ,1
+n,int,variable,4,0,3,final ,1
+s,float,variable,4,16,4,final ,1
+sd,float,variable,4,20,4,final ,1
+swap,int,variable,4,12,3,final ,1
