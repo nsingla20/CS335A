@@ -1554,7 +1554,7 @@ primary_no_new_array:
           /* TODO: get type from class name */
         }
 | TOK_40 expression TOK_41    %prec PARENTHESES   {
-          copyData(&$$, $2->s, $2->type);
+          copyData(&$$, $2->s, $2->type, $2->v);
         }
 | class_instance_creation_expression
 | field_access
@@ -2965,22 +2965,23 @@ void generateAssembly() {
         fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
       }
 
-      }
       // Procedure call
-      else if (itr[0] == "call"){
+      else if (itr[0] == "call") {
+        if (itr[1] == "System.out.println") {
+          itr[1] = "print";
+        }
         if (itr[3]=="_"){
           fout << "\tcall " <<itr[1]<<endl;
         }else{
           fout << "\tcall" <<itr[1]<<endl;
           fout << "\tmovq \%eax "<<itr[2]<<endl;
         }
-        else if (itr[0] == "return") {
+      } else if (itr[0] == "return") {
         continue;
       }
 
       else {
         cout << "ERROR: unknown instruction: " << itr[0] << endl;
-      }
       }
     }
   }

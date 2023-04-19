@@ -1,4 +1,6 @@
-ASSUMPTION: non clashing function names
+ASSUMPTIONS:
+- non clashing function names
+- functions can not have more than 6 arguments
 
 Changes in 3ac code:
     changed way of procedure call - used predefined registers
@@ -27,6 +29,7 @@ Completed:
 
 - TODO: register allocation
 - TODO: q vs l type instructions
+- TODO: registers value change after function call
 - TODO: change 3ac code for && and || and ! to fit under
         assumption for conditional jump
 - TODO: print

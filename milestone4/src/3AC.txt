@@ -35,39 +35,55 @@ Test1.main:
 	t18 = ! t17
 	if t18 goto L1
 	t20 = *(%rbp - 4)
-	t23 = t20 +int 
+	t21 = *(%rbp - 12)
+	t22 = t21 -int 2
+	t23 = t20 +int t22
 	*(%rbp - 8) = t23
-	goto L2
+	goto L4
 	L1:
-	t25 = *(%rbp - 4)
-	t26 = *(%rbp - 8)
-	t27 = t25 +int t26
-	*(%rbp - 8) = t27
-	L2:
+	t24 = *(%rbp - 4)
+	t25 = *(%rbp - 8)
+	t26 = t24 == t25
+	t27 = ! t26
+	if t27 goto L3
 	t29 = *(%rbp - 4)
-	t31 = *(%rbp - 8)
-	t32 = *(%rbp - 12)
-	%rsp = %rsp - 4
-	%rdi = t31
-	%rsi = t32
-	call sum 2
-	t33 = %eax
-	t34 = t29 +int t33
-	*(%rbp - 4) = t34
-	*(%rbp - 16) = 0
+	t30 = *(%rbp - 8)
+	t31 = t29 *int t30
+	*(%rbp - 8) = t31
+	goto L4
 	L3:
-	t35 = *(%rbp - 16)
-	t36 = t35 < 15
-	t37 = ! t36
-	if t37 goto L4
-	t41 = *(%rbp - 16) +int 1
-	*(%rbp - 16) = t41
-	t43 = *(%rbp - 4)
-	t44 = *(%rbp - 8)
-	t45 = t43 +int t44
-	*(%rbp - 4) = t45
-	goto L3
+	t33 = *(%rbp - 4)
+	t34 = *(%rbp - 8)
+	t35 = t33 +int t34
+	*(%rbp - 8) = t35
 	L4:
+	t37 = *(%rbp - 4)
+	t39 = *(%rbp - 8)
+	t40 = *(%rbp - 12)
+	%rsp = %rsp - 4
+	%rdi = t39
+	%rsi = t40
+	call sum 2
+	t41 = %eax
+	t42 = t37 +int t41
+	*(%rbp - 4) = t42
+	*(%rbp - 16) = 0
+	L5:
+	t43 = *(%rbp - 16)
+	t44 = t43 < 15
+	t45 = ! t44
+	if t45 goto L6
+	t49 = *(%rbp - 16) +int 1
+	*(%rbp - 16) = t49
+	t51 = *(%rbp - 4)
+	t52 = *(%rbp - 8)
+	t53 = t51 +int t52
+	*(%rbp - 4) = t53
+	goto L5
+	L6:
+	t55 = *(%rbp - 8)
+	%rdi = t55
+	call print 1
 	%eax = 0
 	ret
 	endfunc
