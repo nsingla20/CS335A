@@ -812,7 +812,7 @@ variable_initializer:
 | array_initializer
 ;
 method_declaration:
-  modifier.multiopt method_header method_body { 
+  modifier.multiopt method_header method_body {
     int sz = symbol_table[cur_table_idx].size;
     vector<string> allocate_mem = {"-", "%rsp", to_string(sz), "%rsp"};
     tac_code[cur_method].second.insert(tac_code[cur_method].second.begin(), allocate_mem);
@@ -2856,7 +2856,7 @@ void generateAssembly() {
   ofstream fout("out.s");
   fout << "\t.text" << endl;
   fout << "\t.globl\tmain" << endl;
-  
+
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
@@ -2868,7 +2868,7 @@ void generateAssembly() {
     for (auto itr : method.second) {
       // process each instruction
       updateOperands(itr);
-      
+
       // PROLOGUE and RETURN INSTRUCTIONS
       if (itr[0] == "push") {
         // push to stack
@@ -2942,7 +2942,16 @@ void generateAssembly() {
         //    t13 = ! t12
         //    if t13 goto L1
 
-      } 
+      }
+      // Procedure call
+      else if (itr[0] == "call"){
+        if (itr[3]=="_"){
+          fout << "\tcall " <<itr[1]<<endl;
+        }else{
+          fout << "\tcall" <<itr[1]<<endl;
+          fout << "\tmovq \%eax "<<itr[2]<<endl;
+        }
+      }
     }
   }
 }
