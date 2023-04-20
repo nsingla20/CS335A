@@ -3090,6 +3090,10 @@ void generateAssembly() {
       else if (itr[0] == "label") {
         // label
         fout << "." << itr[3] << ":" << endl;
+      }
+      else if(itr[0] == "if goto"){
+        fout << "\tcmpq\t$0, "<< itr[1] << endl;
+        fout << "\tje\t." << itr[3] << endl;
       } else if (itr[0] == "goto") {
         // unconditional jump
         fout << "\tjmp\t" << "." << itr[3] << endl;
