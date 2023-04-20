@@ -2964,7 +2964,7 @@ void allocate_regs(vector<vector<string>> &ins) {
   // store the last line in which each temp variable was used
   for (int i = 0; i < ins.size(); i++) {
     for (int j = 0; j < 3; j++) {
-      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
+      if (ins[i][j].size() > 0 && ins[i][j][0] == 't' && ins[i][j] != "true") {
         last_line_used[ins[i][j]] = i;
       }
     }
@@ -3014,7 +3014,7 @@ void allocate_regs(vector<vector<string>> &ins) {
 
     // update temp variables with their registers
     for (int j = 3; j >= 1; j--) {
-      if ((ins[i][j][0] != 't' && ins[i][j][0] != '%')) {
+      if (ins[i][j] == "true" || (ins[i][j][0] != 't' && ins[i][j][0] != '%')) {
         continue;
       }
       if (ins[i][j][0] == '%') {
