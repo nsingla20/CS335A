@@ -3092,7 +3092,9 @@ void generateAssembly() {
         fout << "." << itr[3] << ":" << endl;
       }
       else if(itr[0] == "if goto"){
-        fout << "\tcmpq\t$0, "<< itr[1] << endl;
+        fout << "\tmovq\t" << itr[1] << ", %rax" << endl;
+        fout << "\tandq\t$1,%rax"<<endl;
+        fout << "\tcmpq\t$1, %rax"<< endl;
         fout << "\tje\t." << itr[3] << endl;
       } else if (itr[0] == "goto") {
         // unconditional jump
@@ -3106,23 +3108,28 @@ void generateAssembly() {
         //    t13 = ! t12
         //    if t13 goto L1
         fout << "\tcmpq\t" << itr[2] << ", " << itr[1] << endl;
-        string jumpop = "jmp";
+        string jumpop = "";
         if (itr[0] == "<") {
-          jumpop = "jge";
+          jumpop = "setl";
         } else if (itr[0] == ">") {
-          jumpop = "jle";
+          jumpop = "setg";
         } else if (itr[0] == "<=") {
-          jumpop = "jg";
+          jumpop = "setle";
         } else if (itr[0] == ">=") {
-          jumpop = "jl";
+          jumpop = "setge";
         } else if (itr[0] == "==") {
-          jumpop = "jne";
+          jumpop = "sete";
         } else if (itr[0] == "!=") {
-          jumpop = "je";
+          jumpop = "setne";
         }
-        i += 2;
-        itr = method.second[i];
-        fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
+        // i += 2;
+        // itr = method.second[i];
+        // fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
+        // setg	%al
+        // movzbl	%al, %eax
+        fout << "\t" + jumpop + "\t\%al"<< endl;
+        fout<<"\tmovzbl\t\%al, \%eax"<<endl;
+        fout << "\tmovq\t%rax, "<<itr[3]<<endl;
       }
       else if(itr[0]=="!"){
         fout << "\tmovq\t" << itr[1] << ", %rax" << endl;
