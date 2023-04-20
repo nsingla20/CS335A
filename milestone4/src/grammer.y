@@ -2842,6 +2842,11 @@ void updateOperands(vector<string> &ins) {
       // constant: 9 -> $9
       ins[i] = "$" + ins[i];
     }
+    if(ins[i]=="true"){
+      ins[i]="$1";
+    }else if(ins[i]=="false"){
+      ins[i]="$0";
+    }
     if (ins[i][0] == '(' || (ins[i].size() >= 2 && ins[i].substr(0, 2) == "*(")) {
       // address: (a + 4) -> 4(a)
       string base_addr = "", offset = "";
@@ -2873,7 +2878,7 @@ void updateRegisters() {
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       for(int j=0;j<4;j++){
-        if(itr[j][0]=='t'){
+        if(itr[j][0]=='t'&&itr[j]!="true"){
           if(m.find(itr[j])==m.end()){
             int k=0;
             while(occupied[k]!="")k++;
@@ -3065,15 +3070,15 @@ void generateAssembly() {
         fout << "\t" << "movq"<< "\t" << itr[1] << ", \%rax" << endl;
         fout<< "\t" + op + "\t" << "\%r12" << endl;
         fout << "\t" << "movq" << "\t\%rax, " << itr[3] << endl;
-      } else if (itr[0] == "<<" || itr[0] == ">>" || itr[0] == "&" || itr[0] == "|" || itr[0] == "^") {
+      } else if (itr[0] == "<<" || itr[0] == ">>" || itr[0] == "&" || itr[0] == "|" || itr[0] == "&&" || itr[0] == "||" || itr[0] == "^") {
         // left/right shift, bitwise and/or/xor
         string op = "<<";
         if (itr[0] == ">>")
           op = "sarq";
-        else if (itr[0] == "&")
+        else if (itr[0][0] == '&')
           op = "andq";
-        else if (itr[0] == "|")
-          op = "orq";
+        else if (itr[0][0] == '|')
+          op = "orq\t";
         else if (itr[0] == "^")
           op = "xorq";
         fout << "\tmovq\t" << itr[1] << ", %rax" << endl;
@@ -3081,7 +3086,6 @@ void generateAssembly() {
         fout << "\t" + op + "\t%rcx, %rax" << endl;
         fout << "\tmovq\t%rax, " << itr[3] << endl;
       }
-
       // CONTROL FLOW
       else if (itr[0] == "label") {
         // label
@@ -3115,6 +3119,11 @@ void generateAssembly() {
         i += 2;
         itr = method.second[i];
         fout << "\t" + jumpop + "\t" << "." << itr[3] << endl;
+      }
+      else if(itr[0]=="!"){
+        fout << "\tmovq\t" << itr[1] << ", %rax" << endl;
+        fout << "\tnot\t\t%rax" << endl;
+        fout << "\tmovq\t%rax, " << itr[3] << endl;
       }
       // Procedure call
       else if (itr[0] == "call") {
