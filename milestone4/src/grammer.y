@@ -2865,104 +2865,143 @@ void updateOperands(vector<string> &ins) {
     }
   }
 }
-
-void allocate_regs(vector<vector<string>> &ins) {
-  vector<string> callee_regs = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9", "%r10", "%r11"};
-  set<int> avl_callee_regs;
-  for (int i = 0; i < 8; i++) {
-    avl_callee_regs.insert(i);
-  }
-  map<string, int> last_line_used, reg_map;
-  map<int, string> reg_to_var;
-  vector<int> last_used(8, -1);
-  map<string, int> offset;
-  int used_mem = 0;
-  for (int i = 0; i < ins.size(); i++) {
-    for (int j = 0; j < 3; j++) {
-      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
-        last_line_used[ins[i][j]] = i;
-      }
-    }
-  }
-  for (int i = 0; i < ins.size(); i++) {
-    // if (ins[i][0] == "call") {
-    //   int cnt = 0;
-    //   stack<string> saved_regs;
-    //   // save used callee registers in the stack
-    //   for (int j = 0; j < 8; j++) {
-    //     if (avl_callee_regs.find(j) == avl_callee_regs.end()) {
-    //       ins.insert(ins.begin() + i + cnt++, {"pushq", callee_regs[j], "_", "_"});
-    //       saved_regs.push(callee_regs[j]);
-    //     }
-    //   }
-    //   cnt++;
-    //   // load the saved registers
-    //   while (!saved_regs.empty()) {
-    //     ins.insert(ins.begin() + i + cnt++, {"popq", saved_regs.top(), "_", "_"});
-    //     saved_regs.pop();
-    //   }
-    // }
-    for (int j = 1; j < 4; j++) {
-      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
-        if (reg_map.find(ins[i][j]) == reg_map.end()) {
-          // allocate a register
-          if (avl_callee_regs.size() == 0) {
-            cout << "Error: No registers available" << endl;
-            // save a register in the stack, and load it later
-            // use the register that is not used for the longest time
-            int reg = -1, max_last_used = 10000;
-            for (int k = 0; k < 8; k++) {
-              if (last_used[k] < max_last_used) {
-                max_last_used = last_used[k];
-                reg = k;
-              }
-            }
-            // save the register in the stack
-            ins.insert(ins.begin() + i, {"pushq", callee_regs[reg], "_", "_"});
-            used_mem += 8;
-            // make the register available
-            avl_callee_regs.insert(reg);
-            // update reg map
-            reg_map[reg_to_var[reg]] = -1;
-            for (auto it = offset.begin(); it != offset.end(); it++) {
-              it->second += 8;
-            }
-            offset[reg_to_var[reg]] = 0;
-          }
-          int reg = *avl_callee_regs.begin();
-          avl_callee_regs.erase(reg);
-          reg_map[ins[i][j]] = reg;
-          reg_to_var[reg] = ins[i][j];
-        }
-        else if (reg_map[ins[i][j]] == -1) {
-          // load the register from the stack
-          int reg = *avl_callee_regs.begin();
-          avl_callee_regs.erase(reg);
-          reg_map[ins[i][j]] = reg;
-          reg_to_var[reg] = ins[i][j];
-          ins.insert(ins.begin() + i, {"_", "(%rsp + " + to_string(offset[ins[i][j]]) + ")", callee_regs[reg], "_"});
-          offset.erase(ins[i][j]);
-          if (offset.size() == 0) {
-            ins.insert(ins.begin() + i+1, {"+", to_string(used_mem), "%rsp", "%rsp"});
-            used_mem = 0;
+void updateRegisters() {
+  vector<string> regs={"%rsi","%rdi","%rdx","%rcx","%r8","%r9","%r10","%r11"};
+  vector<string> occupied(8,"");
+  map<string,string> m;
+  for (auto &method : tac_code) {
+    for (int i = 0; i < method.second.size(); i++) {
+      vector<string> itr = method.second[i];
+      for(int j=0;j<4;j++){
+        if(itr[j][0]=='t'){
+          if(m.find(itr[j])==m.end()){
+            int k=0;
+            while(occupied[k]!="")k++;
+            occupied[k]=itr[j];
+            m[itr[j]]=regs[k];
+            method.second[i][j]=regs[k];
+          }else{
+            method.second[i][j]=m[itr[j]];
           }
         }
-        // replace the temporary variable with the register
-        string temp_var = ins[i][j];
-        ins[i][j] = callee_regs[reg_map[ins[i][j]]];
-        last_used[reg_map[temp_var]] = i;
-
-        // free the register if it is not used later
-        if (last_line_used[temp_var] <= i) {
-          int reg = reg_map[ins[i][j]];
-          avl_callee_regs.insert(reg);
-          reg_to_var.erase(reg);
-          last_used[reg] = -1;
+      }
+      for(int j=0;j<8;j++){
+        if(occupied[j]=="")continue;
+        bool f=false;
+        for(int k=i+1;!f&&k<method.second.size();k++){
+          vector<string> itr = method.second[k];
+          for(int l=0;!f&&l<4;l++){
+            if(itr[l]==occupied[j]){
+              f=true;
+            }
+          }
+        }
+        if(!f){
+          occupied[j]="";
         }
       }
+
     }
   }
+
 }
+// void allocate_regs(vector<vector<string>> &ins) {
+//   vector<string> callee_regs = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9", "%r10", "%r11"};
+//   set<int> avl_callee_regs;
+//   for (int i = 0; i < 8; i++) {
+//     avl_callee_regs.insert(i);
+//   }
+//   map<string, int> last_line_used, reg_map;
+//   map<int, string> reg_to_var;
+//   vector<int> last_used(8, -1);
+//   map<string, int> offset;
+//   int used_mem = 0;
+//   for (int i = 0; i < ins.size(); i++) {
+//     for (int j = 0; j < 3; j++) {
+//       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
+//         last_line_used[ins[i][j]] = i;
+//       }
+//     }
+//   }
+//   for (int i = 0; i < ins.size(); i++) {
+//     // if (ins[i][0] == "call") {
+//     //   int cnt = 0;
+//     //   stack<string> saved_regs;
+//     //   // save used callee registers in the stack
+//     //   for (int j = 0; j < 8; j++) {
+//     //     if (avl_callee_regs.find(j) == avl_callee_regs.end()) {
+//     //       ins.insert(ins.begin() + i + cnt++, {"pushq", callee_regs[j], "_", "_"});
+//     //       saved_regs.push(callee_regs[j]);
+//     //     }
+//     //   }
+//     //   cnt++;
+//     //   // load the saved registers
+//     //   while (!saved_regs.empty()) {
+//     //     ins.insert(ins.begin() + i + cnt++, {"popq", saved_regs.top(), "_", "_"});
+//     //     saved_regs.pop();
+//     //   }
+//     // }
+//     for (int j = 1; j < 4; j++) {
+//       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
+//         if (reg_map.find(ins[i][j]) == reg_map.end()) {
+//           // allocate a register
+//           if (avl_callee_regs.size() == 0) {
+//             cout << "Error: No registers available" << endl;
+//             // save a register in the stack, and load it later
+//             // use the register that is not used for the longest time
+//             int reg = -1, max_last_used = 10000;
+//             for (int k = 0; k < 8; k++) {
+//               if (last_used[k] < max_last_used) {
+//                 max_last_used = last_used[k];
+//                 reg = k;
+//               }
+//             }
+//             // save the register in the stack
+//             ins.insert(ins.begin() + i, {"pushq", callee_regs[reg], "_", "_"});
+//             used_mem += 8;
+//             // make the register available
+//             avl_callee_regs.insert(reg);
+//             // update reg map
+//             reg_map[reg_to_var[reg]] = -1;
+//             for (auto it = offset.begin(); it != offset.end(); it++) {
+//               it->second += 8;
+//             }
+//             offset[reg_to_var[reg]] = 0;
+//           }
+//           int reg = *avl_callee_regs.begin();
+//           avl_callee_regs.erase(reg);
+//           reg_map[ins[i][j]] = reg;
+//           reg_to_var[reg] = ins[i][j];
+//         }
+//         else if (reg_map[ins[i][j]] == -1) {
+//           // load the register from the stack
+//           int reg = *avl_callee_regs.begin();
+//           avl_callee_regs.erase(reg);
+//           reg_map[ins[i][j]] = reg;
+//           reg_to_var[reg] = ins[i][j];
+//           ins.insert(ins.begin() + i, {"_", "(%rsp + " + to_string(offset[ins[i][j]]) + ")", callee_regs[reg], "_"});
+//           offset.erase(ins[i][j]);
+//           if (offset.size() == 0) {
+//             ins.insert(ins.begin() + i+1, {"+", to_string(used_mem), "%rsp", "%rsp"});
+//             used_mem = 0;
+//           }
+//         }
+//         // replace the temporary variable with the register
+//         string temp_var = ins[i][j];
+//         ins[i][j] = callee_regs[reg_map[ins[i][j]]];
+//         last_used[reg_map[temp_var]] = i;
+
+//         // free the register if it is not used later
+//         if (last_line_used[temp_var] <= i) {
+//           int reg = reg_map[ins[i][j]];
+//           avl_callee_regs.insert(reg);
+//           reg_to_var.erase(reg);
+//           last_used[reg] = -1;
+//         }
+//       }
+//     }
+//   }
+// }
 
 void generateAssembly() {
   ofstream fout("out.s");
@@ -2970,7 +3009,7 @@ void generateAssembly() {
   fout << "\t.text" << endl;
   fout << ".LC0:" << endl;
   fout << "\t.string\t\"%d\\n\"" << endl;
-
+  updateRegisters();
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
@@ -2982,7 +3021,7 @@ void generateAssembly() {
     fout << "\t.globl\t"<<method_name << endl;
     fout << method_name << ":" << endl;
 
-    allocate_regs(method.second);
+    // allocate_regs(method.second);
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       // process each instruction
