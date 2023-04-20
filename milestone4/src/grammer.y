@@ -2448,26 +2448,35 @@ string call_procedure(struct expr* method_name, struct expr* args){
   // if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
   string temp = "";
   string args_v(args->v);
-  vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
-  int reg_cnt = 0;
-  for (int i = 0; i < args_v.length(); i++) {
-    if (args_v[i] == ',') {
-      pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
-      temp = "";
-    } else {
-      temp += args_v[i];
-    }
-  }
+  // vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
+  // int reg_cnt = 0;
   string v = "";
+
+
+
   if (meth == "System.out.println") {
     meth = "printf@PLT";
-    pushInstruction("_", temp, "_", "%rsi");
+    pushInstruction("_", args_v, "_", "%rsi");
     pushInstruction("leaq", ".LC0(%rip)", "_", "%rdi");
     pushInstruction("_", "0", "_", "%rax");
   } else {
-    pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
+    // pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
+    int pus_c = 1+count(args_v.begin(),args_v.end(),',');
+    if(pus_c%2!=0){
+      pushInstruction("-", "%rsp", "$8", "%rsp");
+    }
+    for (int i = 0; i < args_v.length(); i++) {
+      if (args_v[i] == ',') {
+        pushInstruction("push", temp, "_", "_");
+        temp = "";
+      } else {
+        temp += args_v[i];
+      }
+    }
+    pushInstruction("push", temp, "_", "_");
     meth = symbol_table[symbol_table[meth_i].parent].name + "." + symbol_table[meth_i].name;
   }
+
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
   else{
@@ -2716,30 +2725,38 @@ void optimizeTAC() {
 // 16d. *x = y             => <* lhs, y, _, x>
 // 17d. push r             => <push, r, _, _>
 // 18d. ret                => <ret,_,_,_>
+// 19.  pop                 => <pop, r, _, _>
 // 19.  inc x              => <inc, x, _, _>
 
 void dump3AC_pre(ofstream &fout, int i){
   // fout << "\tpush %rbp" << endl;
   // fout << "\t%rbp = %rsp" << endl;
   int cnt = 0;
+
   tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"push", "%rbp", "_", "_"});
   tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"_", "%rsp", "_", "%rbp"});
   cnt++;
-  int of=8;
-  vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
-  for(int j = 0; j < methods[i].second.size(); j++){
-    struct expr *ep=methods[i].second[j];
-    int x=of;
-    if(size_map.find(ep->type)!=size_map.end()){
-      of+=size_map[ep->type];
+  int of_d=8;
+  int n = methods[i].second.size();
+  int of_s = 8+8*n;
+  for(int j=0;j<n;j++){
+    // struct expr *ep=methods[i].second[j];
+    // int x=of;
+    // if(size_map.find(ep->type)!=size_map.end()){
+    //   of+=size_map[ep->type];
       // tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"-", "%rsp", to_string(size_map[ep->type]), "%rsp"});
       // fout<<"\t%rsp -= "<<size_map[ep->type]<<endl;
-    }
+    // }
     // fout<<"\t"<<ep->s<<" = +"<<of<<"(%rbp)"<<endl;
-    tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"* lhs", args_reg[j], "_", "(%rbp - " + to_string(x) + ")"});
+    // tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"* lhs", args_reg[j], "_", "(%rbp - " + to_string(x) + ")"});
+    // tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"pop", "(%rbp - " + to_string(x) + ")", "_", "_"});
+
+    tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"* rhs", "(%rbp + " + to_string(of_s-8*j) + ")", "_", "%rax"});
+    tac_code[i].second.insert(tac_code[i].second.begin() + cnt++, {"* lhs", "%rax", "_", "(%rbp - " + to_string(of_d+8*j) + ")"});
     // fout<<"\t*(%rbp - "<<x-4<<") = *(%rbp + "<<of<<")"<<endl;
     // cout<<ep->type;
   }
+  // vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
 }
 
 void dump3AC_post(ofstream &fout, int i,int j, string ret){

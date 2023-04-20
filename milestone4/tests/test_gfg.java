@@ -1,10 +1,8 @@
 class GFG {
 
     static int sum(int a, int b){
-        int c = 15,g= 15,h= 15,j= 15,k= 15,l= 15,i= 15;
-        c = a + b+c+g+h+j+k+l+i;
-        a=b;
-        return c;
+
+        return 0;
     }
 
     static void main() {
@@ -17,9 +15,9 @@ class GFG {
         // int arr[] = new int[5][5];
 
         // arr[3][3] = 4;
-        int y = 69,z=12,m=12,n=2;
-        // int x = sum(1,2);
+        // int y = 69,z=12,m=12,n=2;
+        int x = sum(1,2);
         // int a= sum(1,2);
-        // System.out.println(d);
+        // System.out.println(a);
     }
 }

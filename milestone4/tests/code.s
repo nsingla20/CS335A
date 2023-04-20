@@ -6,26 +6,27 @@ sum:
 	endbr64
 	pushq	%rbp
 	movq	%rsp, %rbp
-	movl	%edi, -20(%rbp)
-	movl	%esi, -24(%rbp)
-	movl	%edx, -28(%rbp)
-	movl	%ecx, -32(%rbp)
-	movl	%r8d, -36(%rbp)
-	movl	%r9d, -40(%rbp)
-	movl	$15, -4(%rbp)
-	movl	-20(%rbp), %edx
+	movl	%edi, -4(%rbp)
+	movl	%esi, -8(%rbp)
+	movl	%edx, -12(%rbp)
+	movl	%ecx, -16(%rbp)
+	movl	%r8d, -20(%rbp)
+	movl	%r9d, -24(%rbp)
+	movl	-4(%rbp), %edx
+	movl	-8(%rbp), %eax
+	addl	%eax, %edx
+	movl	-12(%rbp), %eax
+	addl	%eax, %edx
+	movl	-16(%rbp), %eax
+	addl	%eax, %edx
+	movl	-20(%rbp), %eax
+	addl	%eax, %edx
 	movl	-24(%rbp), %eax
 	addl	%eax, %edx
-	movl	-32(%rbp), %eax
-	addl	%eax, %edx
-	movl	-36(%rbp), %eax
-	addl	%eax, %edx
-	movl	-40(%rbp), %eax
-	addl	%eax, %edx
 	movl	16(%rbp), %eax
+	addl	%eax, %edx
+	movl	24(%rbp), %eax
 	addl	%edx, %eax
-	movl	%eax, -4(%rbp)
-	movl	-4(%rbp), %eax
 	popq	%rbp
 	ret
 	.size	sum, .-sum
@@ -35,8 +36,9 @@ my:
 	endbr64
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$8, %rsp
-	movl	%edi, -4(%rbp)
+	subq	$24, %rsp
+	movl	%edi, -20(%rbp)
+	pushq	$8
 	pushq	$7
 	movl	$6, %r9d
 	movl	$5, %r8d
@@ -45,8 +47,9 @@ my:
 	movl	$2, %esi
 	movl	$1, %edi
 	call	sum
-	addq	$8, %rsp
-	movl	$0, %eax
+	addq	$16, %rsp
+	movl	$1, -4(%rbp)
+	movl	-4(%rbp), %eax
 	leave
 	ret
 	.size	my, .-my
@@ -56,20 +59,15 @@ main:
 	endbr64
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$16, %rsp
-	movl	$1, -4(%rbp)
-	movl	$2, -8(%rbp)
-	movl	-4(%rbp), %eax
-	cmpl	-8(%rbp), %eax
-	jge	.L6
-	movl	-4(%rbp), %eax
-	movl	%eax, -8(%rbp)
-.L6:
-	movl	-8(%rbp), %eax
-	movl	%eax, %edi
-	call	my
-	movl	-4(%rbp), %eax
-	leave
+	movq	$1, -16(%rbp)
+	movq	$2, -8(%rbp)
+	movq	-16(%rbp), %rax
+	cmpq	-8(%rbp), %rax
+	setg	%al
+	movzbl	%al, %eax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
+	popq	%rbp
 	ret
 	.size	main, .-main
 	.ident	"GCC: (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0"

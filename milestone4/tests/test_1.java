@@ -6,10 +6,9 @@ public class Test1 {
 	}
 
 	public static int main() {
-		int a,b,c;
+		int c,b,a;
 		a = 1; b = 2; c = 3;
-		b = 15 + 2*c;
-		
+		b = 15 + c;
 		if (a > b) {
 			b = a + (c - 2);
 		} else if (a == b) {
@@ -17,21 +16,13 @@ public class Test1 {
 		} else {
 			b = a + b;
 		}
-		c = c + sum(a, b) + 2*10;
-		System.out.println(c);
+		// a = a + sum(b, c);
 
 		for (int i = 0; i < 15; i++){
 			i += 1;
 			a = a + b;
 		}
-
-		c = 10;
-		while (c < 15) {
-			System.out.println(c);
-			++c;			
-		}
-
-		b = sum(a,b);
+		b=sum(a,b);
 		System.out.println(b);
 		return 0;
 	}
