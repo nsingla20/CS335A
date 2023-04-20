@@ -1966,15 +1966,23 @@ unary_expression:
 ;
 pre_increment_expression:
   TOK_4343 unary_expression   %prec PREINC  {
-          pushInstructionWithType("+", $2->v, "1", $2->v, $2->type, $2->type);
-          copyData(&$$, "++" + string($2->s), $2->type, $2->v);
+          string offset = to_string(lookupOffset(string($2->s)));
+          string v1 = "*(%rbp - " + offset + ")";
+          pushInstruction("inc", v1, "_", "_");
+          string v2 = storeTemp("_", v1, "_");
+          // pushInstructionWithType("+", $2->v, "1", $2->v, $2->type, $2->type);
+          copyData(&$$, "++" + string($2->s), $2->type, v2);
           specificTypeCheck($2->type, "Numeric", "++");
         }
 ;
 pre_decrement_expression:
   TOK_4545 unary_expression		%prec PREDEC {
-          pushInstructionWithType("-", $2->v, "1", $2->v, $2->type, $2->type);
-          copyData(&$$, "--" + string($2->s), $2->type, $2->v);
+          string offset = to_string(lookupOffset(string($2->s)));
+          string v1 = "*(%rbp - " + offset + ")";
+          pushInstruction("dec", v1, "_", "_");
+          string v2 = storeTemp("_", v1, "_");
+          // pushInstructionWithType("-", $2->v, "1", $2->v, $2->type, $2->type);
+          copyData(&$$, "--" + string($2->s), $2->type, v2);
           specificTypeCheck($2->type, "Numeric", "++");
         }
 ;
@@ -2001,17 +2009,21 @@ postfix_expression:
 ;
 post_increment_expression:
   postfix_expression TOK_4343	  %prec POSTINC {
-          string v = storeTemp("_", $1->v, "_");
-          copyData(&$$, string($1->s) + "++", $1->type, v);
-          pushInstructionWithType("+", $1->v, "1", $1->v, $1->type, $1->type);
+          // string v = storeTemp("_", $1->v, "_");
+          copyData(&$$, string($1->s) + "++", $1->type, $1->v);
+          string offset = to_string(lookupOffset(string($1->s)));
+          string v2 = "*(%rbp - " + offset + ")";
+          pushInstruction("inc", v2, "_", "_");
           specificTypeCheck($1->type, "Numeric", "++");
         }
 ;
 post_decrement_expression:
   postfix_expression TOK_4545		%prec POSTDEC {
-          string v = storeTemp("_", $1->v, "_");
-          copyData(&$$, string($1->s) + "--", $1->type, v);
-          pushInstructionWithType("-", $1->v, "1", $1->v, $1->type, $1->type);
+          // string v = storeTemp("_", $1->v, "_");
+          copyData(&$$, string($1->s) + "--", $1->type, $1->v);
+          string offset = to_string(lookupOffset(string($1->s)));
+          string v2 = "*(%rbp - " + offset + ")";
+          pushInstruction("dec", v2, "_", "_");
           specificTypeCheck($1->type, "Numeric", "--");
         }
 ;
@@ -2704,6 +2716,7 @@ void optimizeTAC() {
 // 16d. *x = y             => <* lhs, y, _, x>
 // 17d. push r             => <push, r, _, _>
 // 18d. ret                => <ret,_,_,_>
+// 19.  inc x              => <inc, x, _, _>
 
 void dump3AC_pre(ofstream &fout, int i){
   // fout << "\tpush %rbp" << endl;
@@ -2714,7 +2727,7 @@ void dump3AC_pre(ofstream &fout, int i){
   cnt++;
   int of=8;
   vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
-  for(int j=methods[i].second.size()-1;j>-1;j--){
+  for(int j = 0; j < methods[i].second.size(); j++){
     struct expr *ep=methods[i].second[j];
     int x=of;
     if(size_map.find(ep->type)!=size_map.end()){
@@ -2804,6 +2817,10 @@ void dump3AC() {
         fout << ins[3] << "[" << ins[2] << "] = " << ins[1];
       else if (ins[0] == "&")
         fout << ins[3] << " = &" << ins[1];
+      else if (ins[0] == "inc")
+        fout << ins[1] << " = " << ins[1] << " + 1";
+      else if (ins[0] == "dec")
+        fout << ins[1] << " = " << ins[1] << " - 1";
       else if (ins[0] == "* rhs") {
         if (ins[2] == "_")
           fout << ins[3] << " = *" << ins[1];
@@ -2868,15 +2885,21 @@ void updateOperands(vector<string> &ins) {
 
 void allocate_regs(vector<vector<string>> &ins) {
   vector<string> callee_regs = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9", "%r10", "%r11"};
+  map<string, int> reg_to_regid;
   set<int> avl_callee_regs;
   for (int i = 0; i < 8; i++) {
     avl_callee_regs.insert(i);
+    reg_to_regid[callee_regs[i]] = i;
   }
   map<string, int> last_line_used, reg_map;
   map<int, string> reg_to_var;
   vector<int> last_used(8, -1);
   map<string, int> offset;
+  vector<int> deallocate_regs, args_reg_used;
   int used_mem = 0;
+  int ins_added = 0;
+
+  // store the last line in which each temp variable was used
   for (int i = 0; i < ins.size(); i++) {
     for (int j = 0; j < 3; j++) {
       if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
@@ -2884,81 +2907,145 @@ void allocate_regs(vector<vector<string>> &ins) {
       }
     }
   }
+  
   for (int i = 0; i < ins.size(); i++) {
-    // if (ins[i][0] == "call") {
-    //   int cnt = 0;
-    //   stack<string> saved_regs;
-    //   // save used callee registers in the stack
-    //   for (int j = 0; j < 8; j++) {
-    //     if (avl_callee_regs.find(j) == avl_callee_regs.end()) {
-    //       ins.insert(ins.begin() + i + cnt++, {"pushq", callee_regs[j], "_", "_"});
-    //       saved_regs.push(callee_regs[j]);
-    //     }
-    //   }
-    //   cnt++;
-    //   // load the saved registers
-    //   while (!saved_regs.empty()) {
-    //     ins.insert(ins.begin() + i + cnt++, {"popq", saved_regs.top(), "_", "_"});
-    //     saved_regs.pop();
-    //   }
-    // }
-    for (int j = 1; j < 4; j++) {
-      if (ins[i][j].size() > 0 && ins[i][j][0] == 't') {
-        if (reg_map.find(ins[i][j]) == reg_map.end()) {
-          // allocate a register
-          if (avl_callee_regs.size() == 0) {
-            cout << "Error: No registers available" << endl;
-            // save a register in the stack, and load it later
-            // use the register that is not used for the longest time
-            int reg = -1, max_last_used = 10000;
-            for (int k = 0; k < 8; k++) {
-              if (last_used[k] < max_last_used) {
-                max_last_used = last_used[k];
-                reg = k;
-              }
-            }
-            // save the register in the stack
-            ins.insert(ins.begin() + i, {"pushq", callee_regs[reg], "_", "_"});
-            used_mem += 8;
-            // make the register available
-            avl_callee_regs.insert(reg);
-            // update reg map
-            reg_map[reg_to_var[reg]] = -1;
-            for (auto it = offset.begin(); it != offset.end(); it++) {
-              it->second += 8;
-            }
-            offset[reg_to_var[reg]] = 0;
-          }
-          int reg = *avl_callee_regs.begin();
-          avl_callee_regs.erase(reg);
-          reg_map[ins[i][j]] = reg;
-          reg_to_var[reg] = ins[i][j];
-        }
-        else if (reg_map[ins[i][j]] == -1) {
-          // load the register from the stack
-          int reg = *avl_callee_regs.begin();
-          avl_callee_regs.erase(reg);
-          reg_map[ins[i][j]] = reg;
-          reg_to_var[reg] = ins[i][j];
-          ins.insert(ins.begin() + i, {"_", "(%rsp + " + to_string(offset[ins[i][j]]) + ")", callee_regs[reg], "_"});
-          offset.erase(ins[i][j]);
-          if (offset.size() == 0) {
-            ins.insert(ins.begin() + i+1, {"+", to_string(used_mem), "%rsp", "%rsp"});
-            used_mem = 0;
-          }
-        }
-        // replace the temporary variable with the register
-        string temp_var = ins[i][j];
-        ins[i][j] = callee_regs[reg_map[ins[i][j]]];
-        last_used[reg_map[temp_var]] = i;
+    if (ins[i][0] == "call") {
+      stack<string> saved_regs;
+      // save used callee registers in the stack those are not presents in args
+      // for (int j = 0; j < 8; j++) {
+      //   if (avl_callee_regs.find(j) == avl_callee_regs.end()) {
+      //     if (find(args_reg_used.begin(), args_reg_used.end(), j) == args_reg_used.end()) {
+      //       ins.insert(ins.begin() + i++, {"pushq", callee_regs[j], "_", "_"});
+      //       saved_regs.push(callee_regs[j]);
+      //     }
+      //   }
+      // }
+      // i++;
+      // // load the saved registers
+      // while (!saved_regs.empty()) {
+      //   ins.insert(ins.begin() + i++, {"popq", saved_regs.top(), "_", "_"});
+      //   saved_regs.pop();
+      // }
+      // i--;
 
-        // free the register if it is not used later
-        if (last_line_used[temp_var] <= i) {
-          int reg = reg_map[ins[i][j]];
-          avl_callee_regs.insert(reg);
-          reg_to_var.erase(reg);
-          last_used[reg] = -1;
+      // clear the registers used as arguments
+      for (auto reg : args_reg_used) {
+        deallocate_regs.push_back(reg);
+      }
+      args_reg_used.clear();
+    }
+
+    // free registers that are not used anymore
+    for (auto reg : deallocate_regs) {
+      avl_callee_regs.insert(reg);
+      reg_to_var.erase(reg);
+      last_used[reg] = -1;
+      // cout << "Freed " << callee_regs[reg] << endl;
+    }
+    deallocate_regs.clear();
+
+    // print current instruction
+    // for (int j = 0; j < 4; j++) {
+    //   cout << ins[i][j] << ",";
+    // }
+    // cout << endl;
+
+    // update temp variables with their registers
+    for (int j = 3; j >= 1; j--) {
+      if ((ins[i][j][0] != 't' && ins[i][j][0] != '%')) {
+        continue;
+      }
+      if (ins[i][j][0] == '%') {
+        if (ins[i][j] == "%rbp" || ins[i][j] == "%rsp" || ins[i][j] == "%rax") {
+          continue;
         }
+        // allocate new register for temp variable which was saved in
+        // other register (other register now being used for passing args)
+        int reg = reg_to_regid[ins[i][j]];
+        args_reg_used.push_back(reg);
+        if (avl_callee_regs.count(reg) == 0) {
+          // save the reg value to new register
+          int new_reg = *avl_callee_regs.begin();
+          avl_callee_regs.erase(new_reg);
+          ins.insert(ins.begin() + i++, {"_", callee_regs[reg], "_", callee_regs[new_reg]});
+          ins_added++;
+          string old_var = reg_to_var[reg];
+          reg_map[old_var] = new_reg;
+          reg_to_var[new_reg] = old_var;
+          // cout << i << "," << j << ": Allocated " << callee_regs[new_reg] << " for " << old_var << endl;
+        }
+        continue;
+      }
+      
+      // allocate new register for temp variable
+      if (reg_map.find(ins[i][j]) == reg_map.end()) {
+        // allocate a register
+        if (avl_callee_regs.size() == 0) {
+          cout << "Error: No registers available for storing " << ins[i][j] << endl;
+          // save a register in the stack, and load it later
+          // use the register that is not used for the longest time
+          for (int k = 0; k < 8; k++) {
+            cout << "Currently using reg " << callee_regs[k] << " for " << reg_to_var[k] << endl;
+          }
+          int reg = -1, max_last_used = 10000;
+          for (int k = 0; k < 8; k++) {
+            if (last_used[k] < max_last_used) {
+              max_last_used = last_used[k];
+              reg = k;
+            }
+          }
+          // save the register in the stack
+          cout << "Saving " << callee_regs[reg] << " in the stack" << endl;
+          ins.insert(ins.begin() + i++, {"pushq", callee_regs[reg], "_", "_"});
+          ins_added++;
+          used_mem += 8;
+          // make the register available
+          avl_callee_regs.insert(reg);
+          // update reg map
+          reg_map[reg_to_var[reg]] = -1;
+          for (auto it = offset.begin(); it != offset.end(); it++) {
+            it->second += 8;
+          }
+          offset[reg_to_var[reg]] = 0;
+        }
+        int reg = *avl_callee_regs.begin();
+        avl_callee_regs.erase(reg);
+        reg_map[ins[i][j]] = reg;
+        reg_to_var[reg] = ins[i][j];
+        // cout << "Allocated " << callee_regs[reg] << " for " << ins[i][j] << endl;
+      }
+      else if (reg_map[ins[i][j]] == -1) {
+        // register was allocated but later removed
+        // load the value of temp var from the stack
+        // and store it in a register
+        cout << "Loading " << ins[i][j] << " from the stack" << endl;
+        int reg = *avl_callee_regs.begin();
+        avl_callee_regs.erase(reg);
+        reg_map[ins[i][j]] = reg;
+        reg_to_var[reg] = ins[i][j];
+
+        // %reg := *(rsp + offset)
+        ins.insert(ins.begin() + i++, {"_", "(%rsp + " + to_string(offset[ins[i][j]]) + ")", callee_regs[reg], "_"});
+        ins_added++;
+        offset.erase(ins[i][j]);
+
+        if (offset.size() == 0) {
+          // if no temp var is stored in stack
+          ins.insert(ins.begin() + i++, {"+", to_string(used_mem), "%rsp", "%rsp"});
+          ins_added++;
+          used_mem = 0;
+        }
+      }
+
+      // replace the temporary variable with the register
+      string temp_var = ins[i][j];
+      ins[i][j] = callee_regs[reg_map[ins[i][j]]];
+      last_used[reg_map[temp_var]] = i;
+
+      // add the register to deallocation list if it is not used later
+      if (last_line_used[temp_var] + ins_added <= i) {
+        int reg = reg_map[temp_var];
+        deallocate_regs.push_back(reg);
       }
     }
   }
@@ -2970,6 +3057,7 @@ void generateAssembly() {
   fout << "\t.text" << endl;
   fout << ".LC0:" << endl;
   fout << "\t.string\t\"%d\\n\"" << endl;
+  fout << "\t.globl\tmain" << endl;
 
   for (auto method : tac_code) {
     // process each method
@@ -2979,7 +3067,6 @@ void generateAssembly() {
     if (method_name.size() >= 4 && method_name.substr(sz-4, 4) == "main") {
       method_name = "main";
     }
-    fout << "\t.globl\t"<<method_name << endl;
     fout << method_name << ":" << endl;
 
     allocate_regs(method.second);
@@ -2992,6 +3079,9 @@ void generateAssembly() {
       if (itr[0].size() >=4 && itr[0].substr(0,4) == "push") {
         // push to stack
         fout << "\tpushq\t" << itr[1] << endl;
+      } else if (itr[0].size() >=4 && itr[0].substr(0,3) == "pop") {
+        // pop from stack
+        fout << "\tpopq\t" << itr[1] << endl;
       } else if (itr[0] == "ret") {
         // return instruction
         fout << "\tleave" << endl;
@@ -3041,6 +3131,12 @@ void generateAssembly() {
         fout << "\tmovq\t" << itr[2] << ", %rcx" << endl;
         fout << "\t" + op + "\t%rcx, %rax" << endl;
         fout << "\tmovq\t%rax, " << itr[3] << endl;
+      } else if (itr[0] == "inc") {
+        // increment
+        fout << "\tincq\t" << itr[1] << endl;
+      } else if (itr[0] == "dec") {
+        // decrement
+        fout << "\tdecq\t" << itr[1] << endl;
       }
 
       // CONTROL FLOW
