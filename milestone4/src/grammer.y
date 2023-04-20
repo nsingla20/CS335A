@@ -814,6 +814,7 @@ variable_initializer:
 method_declaration:
   modifier.multiopt method_header method_body {
     int sz = symbol_table[cur_table_idx].size;
+    sz = (sz/16+1)*16;
     vector<string> allocate_mem = {"-", "%rsp", to_string(sz), "%rsp"};
     tac_code[cur_method].second.insert(tac_code[cur_method].second.begin(), allocate_mem);
     cur_table_idx = symbol_table[cur_table_idx].parent;
@@ -2432,7 +2433,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
   if(size_map.find(meth_ret_type)!=size_map.end()){
     ret_size=size_map[meth_ret_type];
   }
-  if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
+  // if(ret_size) pushInstruction("-", "%rsp", to_string(ret_size), "%rsp");
   string temp = "";
   string args_v(args->v);
   vector<string> args_reg = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
@@ -2453,6 +2454,7 @@ string call_procedure(struct expr* method_name, struct expr* args){
     pushInstruction("_", "0", "_", "%rax");
   } else {
     pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
+    meth = symbol_table[symbol_table[meth_i].parent].name + "." + symbol_table[meth_i].name;
   }
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
@@ -2965,20 +2967,21 @@ void allocate_regs(vector<vector<string>> &ins) {
 void generateAssembly() {
   ofstream fout("out.s");
   fout << "\t.section .rdata" << endl;
+  fout << "\t.text" << endl;
   fout << ".LC0:" << endl;
   fout << "\t.string\t\"%d\\n\"" << endl;
-  fout << "\t.text" << endl;
-  fout << "\t.globl\tmain" << endl;
 
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
+
     int sz = method_name.size();
     if (method_name.size() >= 4 && method_name.substr(sz-4, 4) == "main") {
       method_name = "main";
     }
+    fout << "\t.globl\t"<<method_name << endl;
     fout << method_name << ":" << endl;
-    
+
     allocate_regs(method.second);
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
