@@ -1,0 +1,36 @@
+#!/bin/bash
+args=("$@")
+ELEMENTS=${#args[@]}
+
+input=""
+output="out.s"
+flag=0;
+
+for (( i=0;i<$ELEMENTS;i++)); do
+    arg=${args[${i}]}
+    if [ ${arg:0:1} == '-' ]; then
+        if [ ${arg:2:1} == 'h' ]; then
+            echo "The correct usage is as follows :";
+            echo ".\myASTGenerator --input=input.java --output=output.java"
+            exit 0
+        fi
+        if [ ${arg:2:1} = 'i' ]; then
+            input=${arg:8};
+            flag=1
+        fi
+        if [ ${arg:2:1} = 'o' ]; then
+            output=${arg:9};
+            flag=1
+        fi
+    fi
+done
+
+if [ $flag == 0 ];then
+    echo "Please enter input file or use --help to know syntax"
+    exit
+else
+    ./newcompiler $input
+    mv out.s $output
+fi
+
+
