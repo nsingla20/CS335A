@@ -55,6 +55,7 @@ struct info {
   int line_no;
   unordered_set<string> modifier;
   int table_idx = -1;
+  string val;
 };
 
 struct local_symbol_table {
@@ -95,15 +96,16 @@ bool addToTemp = false;
 vector<pair<string,vector<struct expr*>>> methods;     //methods and there arguments
 
 map<string,string> meth_and_ret;
+vector<string> global_variables;
 
 map<string,int> size_map = {
   {"byte", 8},
   {"short", 8},
   {"int", 8},
   {"long", 8},
-  {"float", 4},
+  {"float", 8},
   {"double", 8},
-  {"boolean", 1},
+  {"boolean", 8},
   {"char", 8},
   {"void", 0},
   {"reference", 0},
@@ -140,6 +142,7 @@ void checkAndPushInstruction(string, string, string, string, int mode=0);
 void pushTempCode();
 string call_procedure(struct expr*,struct expr*);
 string find_type_expr(string meth);
+string getCurClass();
 
 void yyerror(char const *);
 
@@ -559,7 +562,7 @@ integral_type:
 | TOK_char            { cur_size = 8; }
 ;
 floating_point_type:
-  TOK_float           { cur_size = 4; }
+  TOK_float           { cur_size = 8; }
 | TOK_double          { cur_size = 8; }
 ;
 reference_type:
@@ -610,7 +613,9 @@ un_name:
         }
 | un_name TOK_46 TOK_IDENTIFIER     {
           string s = string($1->s) + "." + string($3->s);
-          copyData(&$$, s, s, s);
+          string val = string($1->type) + "." + string($3->s);
+          string type = lookupType(string($3->s));
+          copyData(&$$, s, type, val);
           // TODO: fix type, 3AC
         }
 ;
@@ -768,7 +773,7 @@ variable_declarator:
           if (string($2->s) != "") {
             typeCheck(type, $2->type);
             pushInstruction("_", $2->v, "_", $1->v);
-
+            symbol_table[cur_table_idx].table[symbol].val=string($2->v);
             string dims = string($1->type);
             if (dims.size() >= 2 && dims[0] == '[' && dims[1] == ']') {
               int sz = getArraySize($2->v);
@@ -940,7 +945,14 @@ instance_initializer:
   block
 ;
 constructor_declaration:
-  modifier.multiopt constructor_declarator throws.opt constructor_body { cur_table_idx = symbol_table[cur_table_idx].parent; cur_method = -1; }
+  modifier.multiopt constructor_declarator throws.opt constructor_body {
+    int sz = symbol_table[cur_table_idx].size;
+    sz = (sz/16+1)*16;
+    vector<string> allocate_mem = {"-", "%rsp", to_string(sz), "%rsp"};
+    tac_code[cur_method].second.insert(tac_code[cur_method].second.begin(), allocate_mem);
+    cur_table_idx = symbol_table[cur_table_idx].parent;
+    cur_method = -1;
+    }
 ;
 constructor_declarator:
   simple_type_name {
@@ -1547,11 +1559,13 @@ primary:
 primary_no_new_array:
   hold_Literal
 | TOK_this			                {
-          copyData(&$$, $1->s, "this", "this");
+          string s=getCurClass();
+          copyData(&$$, s, s, s);
           /* TODO: get type from class name */
         }
 | un_name TOK_46 TOK_this			  {
-          copyData(&$$, string($1->s) + ".this", "this");
+  string s=getCurClass();
+          copyData(&$$, string($1->s) + "." + s, string($1->s) + "." + s);
           /* TODO: get type from class name */
         }
 | TOK_40 expression TOK_41    %prec PARENTHESES   {
@@ -1592,6 +1606,7 @@ field_access:
   primary TOK_46 TOK_IDENTIFIER	{
           string s = string($1->s) + "." + string($3->s);
           string type = getFieldVariableType(s);
+          s = string($1->type) + "." + string($3->s);
           copyData(&$$, s, type, s);
           // TODO: get type
         }
@@ -1746,11 +1761,17 @@ assignment:
 ;
 left_hand_side:
   un_name  {
-          string offset = to_string(lookupOffset(string($1->s)));
+    string s($1->s);
+    if (s.find('.') == std::string::npos){
+          string offset = to_string(lookupOffset(s));
           string v = "*(%rbp - " + offset + ")";
-          copyData(&$$, string($1->s), $1->type, v);
+          copyData(&$$, s, $1->type, v);
           popLastInstruction();
-        }
+    }else{
+      copyData(&$$, s, $1->type, $1->v);
+          popLastInstruction();
+    }
+  }
 | field_access
 | array_access		{
           string s = string($1->s);
@@ -2091,7 +2112,16 @@ void insertSymbol(string symbol, struct info *i) {
     cout << "Error at line no " << yylineno << ": " << symbol << " already declared in this scope\n";
   }
 }
-
+string getCurClass(){
+  int i = cur_table_idx;
+  while (i != -1) {
+    if (symbol_table[i].class_table) {
+      return symbol_table[i].name;
+    }
+    i = symbol_table[i].parent;
+  }
+  return symbol_table[cur_table_idx].name;
+}
 int getCurSize() {
   int i = cur_table_idx;
   while (i != -1) {
@@ -2876,12 +2906,12 @@ void updateOperands(vector<string> &ins) {
       // constant: 9 -> $9
       ins[i] = "$" + ins[i];
     }
-    if(ins[i]=="true"){
+    else if(ins[i]=="true"){
       ins[i]="$1";
     }else if(ins[i]=="false"){
       ins[i]="$0";
     }
-    if (ins[i][0] == '(' || (ins[i].size() >= 2 && ins[i].substr(0, 2) == "*(")) {
+    else if (ins[i][0] == '(' || (ins[i].size() >= 2 && ins[i].substr(0, 2) == "*(")) {
       // address: (a + 4) -> 4(a)
       string base_addr = "", offset = "";
       bool is_base_addr = true;
@@ -2901,6 +2931,12 @@ void updateOperands(vector<string> &ins) {
         }
       }
       ins[i] = offset + "(" + base_addr + ")";
+    }else{
+      for(auto s:global_variables){
+        if(s==ins[i]){
+          ins[i] = ins[i] + "(%rip)";
+        }
+      }
     }
   }
 }
@@ -3113,14 +3149,37 @@ void allocate_regs(vector<vector<string>> &ins) {
   }
 }
 
+void gen_data(ofstream &fout){
+  vector<int> class_st;
+  int cur_scope = 1;
+  for (int i = 1; i < symbol_table.size(); i++) {
+    if (symbol_table[i].class_table == 1) {
+      class_st.push_back(i);
+    }
+  }
+  for(auto i:class_st){
+    for(auto &symbol : symbol_table[i].table){
+      string name = symbol_table[i].name + "." + symbol.first;
+      struct info s_info = symbol.second;
+      if(s_info.kind == "variable"){
+        global_variables.push_back(name);
+        fout << name << ":" << endl;
+        fout << "\t.long " << (s_info.val!=""?s_info.val:"0") <<endl;;
+      }
+    }
+  }
+}
 void generateAssembly() {
   ofstream fout("out.s");
-  fout << "\t.section .rdata" << endl;
-  fout << "\t.text" << endl;
+  // fout << "\t.section .rdata" << endl;
+  // fout << "\t.text" << endl;
+  fout << "\t.globl\tmain" << endl;
+  fout << "\t.data" << endl;
   fout << ".LC0:" << endl;
   fout << "\t.string\t\"%d\\n\"" << endl;
-  fout << "\t.globl\tmain" << endl;
 
+  gen_data(fout);
+  fout << "\t.text" << endl;
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
