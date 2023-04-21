@@ -1,27 +1,27 @@
 import java.util.*;
 
 class Scanner {
-   public String nextLine() {
-      return "Hello World";
+   public int nextLine() {
+      return 1;
    }
 }
 
-class PalindromeExample2  
-{  
-   public static void main(String args[])  
-   {  
-      String original, reverse = ""; // Objects of String class  
-      Scanner in = new Scanner(System.in);   
-      System.out.println("Enter a string/number to check if it is a palindrome");  
-      original = in.nextLine();   
-      int length = original.length();   
-      for ( int i = length - 1; i >= 0; i-- )  
-         reverse = reverse + original.charAt(i);  
-      if (original.equals(reverse)){
-         int k =0;  
-         System.out.println("Entered string/number is a palindrome.");  
+class PalindromeExample2
+{
+   public static void main(String args[])
+   {
+      int original, reverse = 0; // Objects of String class
+      Scanner in;
+      // System.out.println("Enter a string/number to check if it is a palindrome");
+      original = Scanner.nextLine();
+      int length = original;
+      for ( int i = length - 1; i >= 0; i-- )
+         reverse = reverse + 1;
+      if (original==(reverse)){
+         int k =0;
+         System.out.println(1);
       }
-      else  
-         System.out.println("Entered string/number isn't a palindrome.");   
-   }  
-}  
+      else
+         System.out.println(0);
+   }
+}

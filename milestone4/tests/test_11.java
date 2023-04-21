@@ -1,18 +1,17 @@
-class Bike{  
+class Bike{
     void run(){
-        System.out.println("running");
-    }  
-}  
+        System.out.println(1);
+    }
+}
 
-class Splendor extends Bike {
+class Splendor{
     void run(){
-        System.out.println("walking safely with 30km");
-    }  
+        System.out.println(0);
+    }
 }
 
 class DynamicPoly {
     public static void main(String[] args) {
-        Bike b = new Splendor(); //upcasting  
-        b.run();
+        Bike.run();
     }
 }

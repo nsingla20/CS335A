@@ -15,7 +15,7 @@ class Sort {
 public final class BubbleSort extends Sort {
     public int x, y=15;
     private double z;
-    
+
     BubbleSort(float x) {
         this.x = x;
         this.y = x+1;
@@ -59,7 +59,7 @@ public final class BubbleSort extends Sort {
 
         this.x = 12;
         // n = 12*x + super.vec;
-        String str = "Hello World";
+        // String str = "Hello World";
 
         int array[] = new int[2];
         int array1[] = new int[]{1, 2, 3, 4, 5};

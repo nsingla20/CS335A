@@ -1650,6 +1650,8 @@ method_invocation:
           copyData(&$$, string($1->s) + "(" + string($3->s) + ")", $1->type, v);
         }
 | primary TOK_46 TOK_IDENTIFIER TOK_40 argument_list.opt TOK_41 {
+  // string nam = string($1->type)+"."+string($3);
+  // copyString(&($3->s),nam);
           string v=call_procedure($3,$5);
           copyData(&$$, string($1->s) + "." + string($3->s) + "(" + string($5->s) + ")", v);
 
@@ -2482,8 +2484,11 @@ string call_procedure(struct expr* method_name, struct expr* args){
   // int reg_cnt = 0;
   string v = "";
 
-
-
+  vector<string> callee_regs = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9", "%r10", "%r11"};
+  for(int i=0;i<8;i++){
+    pushInstruction("push", callee_regs[i], "_", "_");
+  }
+  int stk=0;
   if (meth == "System.out.println") {
     meth = "printf@PLT";
     pushInstruction("_", args_v, "_", "%rsi");
@@ -2491,29 +2496,44 @@ string call_procedure(struct expr* method_name, struct expr* args){
     pushInstruction("_", "0", "_", "%rax");
   } else {
     // pushInstruction("_", temp, "_", args_reg[reg_cnt++]);
-    int pus_c = 1+count(args_v.begin(),args_v.end(),',');
-    if(pus_c%2!=0){
-      pushInstruction("-", "%rsp", "$8", "%rsp");
-    }
-    for (int i = 0; i < args_v.length(); i++) {
-      if (args_v[i] == ',') {
-        pushInstruction("push", temp, "_", "_");
-        temp = "";
-      } else {
-        temp += args_v[i];
+    if(args_v!=""){
+      int pus_c = 1+count(args_v.begin(),args_v.end(),',');
+      if(pus_c%2!=0){
+        pushInstruction("-", "%rsp", "$8", "%rsp");
+        stk+=8;
       }
+      for (int i = 0; i < args_v.length(); i++) {
+        if (args_v[i] == ',') {
+          pushInstruction("push", temp, "_", "_");
+          stk+=8;
+          temp = "";
+        } else {
+          temp += args_v[i];
+        }
+      }
+      stk+=8;
+      pushInstruction("push", temp, "_", "_");
     }
-    pushInstruction("push", temp, "_", "_");
+
     meth = symbol_table[symbol_table[meth_i].parent].name + "." + symbol_table[meth_i].name;
   }
+
 
   if (ret_size == 0)
     pushInstruction("call", meth, to_string(arg_cnt), "_");
   else{
     pushInstruction("call", meth, to_string(arg_cnt), "_");
+    // pushInstruction("+", "%rsp", to_string(ret_size), "%rsp");
+  }
+  if(stk!=0){
+    pushInstruction("+", "%rsp", to_string(stk), "%rsp");
+  }
+  for(int i=7;i>-1;i--){
+    pushInstruction("pop", callee_regs[i], "_", "_");
+  }
+  if(ret_size!=0){
     v = "t" + to_string(tmp_count++);
     pushInstruction("_", "\%rax", "_", v);
-    // pushInstruction("+", "%rsp", to_string(ret_size), "%rsp");
   }
   return v;
 }
@@ -3164,7 +3184,7 @@ void gen_data(ofstream &fout){
       if(s_info.kind == "variable"){
         global_variables.push_back(name);
         fout << name << ":" << endl;
-        fout << "\t.long " << (s_info.val!=""?s_info.val:"0") <<endl;;
+        fout << "\t.quad " << (s_info.val!=""?s_info.val:"0") <<endl;;
       }
     }
   }
@@ -3180,6 +3200,7 @@ void generateAssembly() {
 
   gen_data(fout);
   fout << "\t.text" << endl;
+  updateRegisters();
   for (auto method : tac_code) {
     // process each method
     string method_name = method.first;
@@ -3190,7 +3211,7 @@ void generateAssembly() {
     }
     fout << method_name << ":" << endl;
 
-    allocate_regs(method.second);
+    // allocate_regs(method.second);
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       // process each instruction
@@ -3200,7 +3221,7 @@ void generateAssembly() {
       if (itr[0].size() >=4 && itr[0].substr(0,4) == "push") {
         // push to stack
         fout << "\tpushq\t" << itr[1] << endl;
-      } else if (itr[0].size() >=4 && itr[0].substr(0,3) == "pop") {
+      } else if (itr[0] == "pop") {
         // pop from stack
         fout << "\tpopq\t" << itr[1] << endl;
       } else if (itr[0] == "ret") {

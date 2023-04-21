@@ -11,6 +11,9 @@ public class Example1 {
    		Example1 a;
 		a.x=1;
 		a.y=2;
+		Example1 b;
+		Example1.x=10;
+		// b.y=12;
 		int x = 10;
 		// float y = 10;
      	System.out.println(a.x);

@@ -19,6 +19,9 @@ public class Test1 {
 		// a = a + sum(b, c);
 
 		for (int i = 0; i < 3; i++){
+			for(int j=0;j<2;j++){
+				a+=1;
+			}
 			i += 1;
 			a = a + b;
 		}

@@ -1,18 +1,18 @@
-int sum(int a, int b,int c,int d,int e,int f,int g,int h){
-
-    return a+b+c+d+e+f+g+h;
-}
-int my(int a){
-    sum(1,2,3,4,5,6,7,8);
-    int b=1;
-	return b;
-}
+long int na=9;
+// int sum(long int a, long int b,long int c,long int d,long int e,long int f,long int g,long int i,long int o){
+//     int s=a+b+c+d+e+f+g;
+//     return my(1);
+// }
+// int my(int a){
+//     sum(1,2,3,4,5,6,7,7,7);
+//     int b=1;
+// 	return b;
+// }
 #include <stdio.h>
 
 int main(){
-    long int a=1,b=2;
-    a=(a>b);
-    return a;
+    na=10;
+    printf("%d\n",na);
 }
 
 /*
