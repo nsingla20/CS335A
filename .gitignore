@@ -45,4 +45,7 @@ milestone4/tests/*
 !milestone4/tests/*.s
 !milestone4/tests/*.sh
 
+!milestone4/doc
+!milestone4/doc/*
+
 .vscode
