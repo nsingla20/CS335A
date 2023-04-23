@@ -72,7 +72,10 @@ public final class BubbleSort extends Sort {
         // arr[0] = 12; // Uncomment to see type error
         arr[0] = 13;
         System.out.println(arr[0]);
+        System.out.println(this.x);
         for (int i = 0; i < 5; i++) {
+            for(k=10;k>=0;k--)
+            System.out.println(k);
             System.out.println(array1[i]);
         }
         for (int i = 0; i < 10; i++) {
