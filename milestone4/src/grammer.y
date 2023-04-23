@@ -82,6 +82,7 @@ vector<string> import_list;
 int param_declaration = 0;
 bool ignoreDeclaration = false;
 
+vector<string> get_arrayVec(string s);
 
 // Data structures to store the three address code
 // <operator, arg1, arg2, result>
@@ -604,7 +605,7 @@ un_name:
           checkDeclaration(string($1->s));
           string type = lookupType(string($1->s));
           if (type == "")
-            type = "unknown type";
+            type = string($1->s);
           int offset = lookupOffset(string($1->s));
           // string v1 = storeTemp("getOffset(" + string($1->s) + ")", "", "_");
           // string v2 = storeTemp("* rhs", "%rbp", v1);
@@ -614,7 +615,21 @@ un_name:
 | un_name TOK_46 TOK_IDENTIFIER     {
           string s = string($1->s) + "." + string($3->s);
           string val = string($1->type) + "." + string($3->s);
-          string type = lookupType(string($3->s));
+          string type = val;
+          string in($1->type);
+          bool b=false;
+          for(int i=0;!b&&i<symbol_table.size();i++){
+            if(symbol_table[i].class_table&&symbol_table[i].name==in){
+              for(auto &symbol:symbol_table[i].table){
+                if(symbol.first==string($3->s)){
+                  b=true;
+                  type=symbol.second.type;
+                  s=val;
+                  break;
+                }
+              }
+            }
+          }
           copyData(&$$, s, type, val);
           // TODO: fix type, 3AC
         }
@@ -679,7 +694,7 @@ class_declaration:
 normal_class_declaration:
   modifier.multiopt TOK_class TOK_IDENTIFIER type_parameters.opt class_extends.opt class_implements.opt class_permits.opt {
                           int offset = symbol_table[cur_table_idx].size;
-                          struct info cur_info = createInfo("", "class", 0, offset, yylineno, modifiers);
+                          struct info cur_info = createInfo($3->s, "class", 0, offset, yylineno, modifiers);
                           string name = string($3->s);
                           insertSymbol(name, &cur_info);
                           modifiers.clear();
@@ -689,6 +704,7 @@ normal_class_declaration:
                           int prev_index = cur_table_idx;
                           cur_table_idx = symbol_table[cur_table_idx].parent;
                           symbol_table[cur_table_idx].size += symbol_table[prev_index].size;
+                          createTable();
                         }
 ;
 type_parameters.opt:
@@ -772,7 +788,7 @@ variable_declarator:
           string type = lookupType(symbol);
           if (string($2->s) != "") {
             typeCheck(type, $2->type);
-            pushInstruction("_", $2->v, "_", $1->v);
+            string v($2->v);
             symbol_table[cur_table_idx].table[symbol].val=string($2->v);
             string dims = string($1->type);
             if (dims.size() >= 2 && dims[0] == '[' && dims[1] == ']') {
@@ -784,7 +800,18 @@ variable_declarator:
               symbol_table[cur_table_idx].table[symbol].offset += sz*base_size;
               symbol_table[cur_table_idx].size += sz*base_size;
               updateSize(sz*base_size - base_size);
+              if(v[0]=='['){
+                v="";
+              }else if(v[0]=='{'){
+                vector<string> arr=get_arrayVec(v);
+                int of = symbol_table[cur_table_idx].table[symbol].offset;
+                for(int i=0;i<sz;i++){
+                  pushInstruction("_", arr[i], "_", "-"+to_string(of-base_size*i)+"(%rbp)");
+                }
+                v="";
+              }
             }
+            if(v!="")pushInstruction("_", v, "_", $1->v);
           }
         }
 ;
@@ -1628,7 +1655,16 @@ array_access:
             cout << "Error at line no " << yylineno << ": Expected array for array access, found " << type << endl;
           }
           string s = string($1->s) + "[" + string($3->s) + "]";
-          copyData(&$$, s, type, s);
+          string v;
+          int of = lookupOffset(string($1->s));
+          if(($3->v)[0]>='0'&&($3->v)[0]<='9'){
+            v="-"+to_string(of-8*(stoi($3->v)))+"(%rbp)";
+          }else{
+            v="-"+to_string(of)+"(%rbp,"+string($3->v)+",8)";
+          }
+          // pushInstruction("_",string($3->v),"_","%r14");
+
+          copyData(&$$, s, type, v);
           specificTypeCheck($3->type, "int", "array index");
         }
 | primary_no_new_array TOK_91 expression TOK_93   %prec ARRAY_ACCESS {
@@ -1638,14 +1674,31 @@ array_access:
           } else {
             cout << "Error at line no " << yylineno << ": Expected array for array access, found " << type << endl;
           }
-          string s = string($1->s) + "[" + string($3->s) + "]";
-          copyData(&$$, s, type, s);
+          string s = string($1->s);
+          string v;
+          s=s.substr(0,s.find('['));
+          int of = lookupOffset(string($1->s));
+          if(($3->v)[0]>='0'&&($3->v)[0]<='9'){
+            v="-"+to_string(of-8*(stoi($3->v)))+"(%rbp)";
+          }else{
+            v="-"+to_string(of)+"(%rbp,"+string($3->v)+",8)";
+          }
+          s = string($1->s) + "[" + string($3->s) + "]";
+          copyData(&$$, s, type, v);
           specificTypeCheck($3->type, "int", "array index");
         }
 ;
 method_invocation:
   un_name TOK_40 argument_list.opt TOK_41	  {
           // check no. of arguments and their type
+          // string s($1->type),t($1->s);
+          // string ans=t;
+          // if(t.find('.')!=string::npos){
+          //   ans = s.substr(0,s.find_last_of('.'))+t.substr(t.find_last_of('.'));
+          // }
+
+
+          // copyString(&($1->s),ans);
           string v=call_procedure($1,$3);
           copyData(&$$, string($1->s) + "(" + string($3->s) + ")", $1->type, v);
         }
@@ -1776,23 +1829,23 @@ left_hand_side:
   }
 | field_access
 | array_access		{
-          string s = string($1->s);
-          string a1 = "", a2 = "";
-          bool flag = false;
-          for (int i = 0; i < s.length(); i++) {
-            if (s[i] == '[') {
-              flag = true;
-            } else if (s[i] == ']') {
-              break;
-            } else {
-              if (flag) {
-                a2 += s[i];
-              } else {
-                a1 += s[i];
-              }
-            }
-          }
-          copyData(&$$, string($1->s), $1->type, $1->s);
+          // string s = string($1->s);
+          // string a1 = "", a2 = "";
+          // bool flag = false;
+          // for (int i = 0; i < s.length(); i++) {
+          //   if (s[i] == '[') {
+          //     flag = true;
+          //   } else if (s[i] == ']') {
+          //     break;
+          //   } else {
+          //     if (flag) {
+          //       a2 += s[i];
+          //     } else {
+          //       a1 += s[i];
+          //     }
+          //   }
+          // }
+          // copyData(&$$, string($1->s), $1->type, to_string(lookupOffset(a1)));
         }
 ;
 assignment_operator:
@@ -2537,7 +2590,21 @@ string call_procedure(struct expr* method_name, struct expr* args){
   }
   return v;
 }
-
+vector<string> get_arrayVec(string s){
+  int n=s.length();
+  vector<string> ans;
+  string temp="";
+  for(int i=0;i<n;i++){
+    if(s[i]==','&&temp!=""){
+      ans.push_back(temp);
+      temp="";
+    }else if('0'<=s[i]&&s[i]<='9'){
+      temp+=s[i];
+    }
+  }
+  if(temp!="")ans.push_back(temp);
+  return ans;
+}
 int getArraySize(string type) {
   int i = 0, sz = 1;
   if (type.size() == 0) {
@@ -2838,7 +2905,7 @@ void dump3AC_post(ofstream &fout, int i,int j, string ret){
 }
 
 void dump3AC() {
-  optimizeTAC();
+  // optimizeTAC();
   ofstream fout("3AC.txt");
 
   for (int i = 0; i < tac_code.size(); i++) {
@@ -2960,6 +3027,30 @@ void updateOperands(vector<string> &ins) {
     }
   }
 }
+pair<string,string> par(string i){
+  pair<string,string> p;
+  string temp="";
+  int e=0;
+  int n=i.length();
+  while(e<n&&i[e]!='('){
+    temp+=i[e];
+    e++;
+  }
+  p.first=temp;
+  temp="";
+  bool f=false;
+
+  for(int e=0;e<n;e++){
+    if(i[e]!=','&&f){
+      temp+=i[e];
+    }
+    if(i[e]==','){
+      f=!f;
+    }
+  }
+  p.second=temp;
+  return p;
+}
 void updateRegisters() {
   vector<string> regs={"%rsi","%rdi","%rdx","%rcx","%r8","%r9","%r10","%r11"};
   vector<string> occupied(8,"");
@@ -2968,6 +3059,11 @@ void updateRegisters() {
     for (int i = 0; i < method.second.size(); i++) {
       vector<string> itr = method.second[i];
       for(int j=0;j<4;j++){
+        string ib= itr[j];
+        pair<string,string> p=par(ib);
+        if(p.second!=""){
+          itr[j]=p.second;
+        }
         if(itr[j][0]=='t'&&itr[j]!="true"){
           if(m.find(itr[j])==m.end()){
             int k=0;
@@ -2978,6 +3074,9 @@ void updateRegisters() {
           }else{
             method.second[i][j]=m[itr[j]];
           }
+          if(p.second!=""){
+            method.second[i][j]=p.first+"(%rbp,"+method.second[i][j]+",8)";
+          }
         }
       }
       for(int j=0;j<8;j++){
@@ -2986,6 +3085,11 @@ void updateRegisters() {
         for(int k=i+1;!f&&k<method.second.size();k++){
           vector<string> itr = method.second[k];
           for(int l=0;!f&&l<4;l++){
+            string ib= itr[l];
+            pair<string,string> p=par(ib);
+            if(p.second!=""){
+              itr[l]=p.second;
+            }
             if(itr[l]==occupied[j]){
               f=true;
             }

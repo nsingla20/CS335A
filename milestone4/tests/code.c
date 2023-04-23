@@ -11,8 +11,10 @@ long int na=9;
 #include <stdio.h>
 
 int main(){
-    na=10;
-    printf("%d\n",na);
+    long int n=1;
+    long int arr[10];
+    arr[n]=0;
+    return arr[n];
 }
 
 /*

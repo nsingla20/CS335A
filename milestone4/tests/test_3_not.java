@@ -19,7 +19,7 @@ public final class BubbleSort extends Sort {
     BubbleSort(float x) {
         this.x = x;
         this.y = x+1;
-        this.z = 0f;
+        this.z = 0;
     }
 
     private int result(int a, int b) {
@@ -41,18 +41,19 @@ public final class BubbleSort extends Sort {
         System.out.println(res);
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                if (i == j)
-                    continue;
-                else if (i == 0)
-                    break;
-                else
+                // if (i == j)
+                //     continue;
+                // else if (i == 0)
+                //     break;
+                // else
                     res = i + j;
             }
         }
         return res;
     }
 
-    public static int main(final String[] args) {
+    public static int main(int args) {
+        args=23;
         int n = 10, j, k, d, swap;
         k = 27 + j;
         // k = 2 + "Hello"; // Uncomment to see incorrect operand type with +
@@ -61,7 +62,7 @@ public final class BubbleSort extends Sort {
         // n = 12*x + super.vec;
         // String str = "Hello World";
 
-        int array[] = new int[2];
+        int array[] = new int[]{0,10};
         int array1[] = new int[]{1, 2, 3, 4, 5};
         // array[2.5] = 12; // Uncomment to see incorrect array index
         // k[1] = 12; // Uncomment to see incorrect array access
@@ -69,28 +70,31 @@ public final class BubbleSort extends Sort {
 
         float arr[][] = new float[2][2];
         // arr[0] = 12; // Uncomment to see type error
-        arr[1][1] = 13.6f;
-
+        arr[0] = 13;
+        System.out.println(arr[0]);
+        for (int i = 0; i < 5; i++) {
+            System.out.println(array1[i]);
+        }
         for (int i = 0; i < 10; i++) {
-            char k = 'c' + i;
+            // char k = i;
             char f = (char) 65 + k;
             int array3[] = { 1, 2, 3, 4, 5, 6 };
             int array4[][] = { {1, 2, 3}, {4, 5, 6} };
-            for (; k >= 0; k -= 2) {
-                f += k;
-            }
-            k = 'f' + n;
+
+            System.out.println(i);
+            k = n;
         }
         while (n > 0) {
-            if (n == 0)
-                break;        // no support for break yet
-            else if (n == 1)
-                continue;     // no support for continue yet
-            else
-                n--;
+            // if (n == 0)
+            //     break;        // no support for break yet
+            // else if (n == 1)
+            //     continue;     // no support for continue yet
+            // else
+            //     n--;
             int d = n-k;
             n--; k++;
             j += d;
+            System.out.println(n);
         }
         // do {
         //     n = j + k;

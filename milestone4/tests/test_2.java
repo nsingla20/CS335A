@@ -1,6 +1,6 @@
 public class SyntaxCheck {
     static void printFunc(int val,int c) {
-        System.out.println(c);
+        System.out.println(val);
     }
 
     public static void main() {
@@ -17,9 +17,9 @@ public class SyntaxCheck {
         while (a < 100) {
             a = a + 1;
             // f = f && false;
-            printFunc((float) a);
+            printFunc((float) a,k);
         }
-        a=!a;
+        // a=!a;
         printFunc(a,8);
     }
 }

@@ -11,9 +11,9 @@ class PalindromeExample2
    public static void main(String args[])
    {
       int original, reverse = 0; // Objects of String class
-      Scanner in;
+      Scanner in = new Scanner();
       // System.out.println("Enter a string/number to check if it is a palindrome");
-      original = Scanner.nextLine();
+      original = in.nextLine();
       int length = original;
       for ( int i = length - 1; i >= 0; i-- )
          reverse = reverse + 1;
