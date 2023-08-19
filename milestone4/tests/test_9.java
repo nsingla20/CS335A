@@ -10,7 +10,7 @@ public class GFG {
 		for (int i = 1; i <= n; i++)
 			fact[i] = i * fact[i - 1];
 
-		return fact[n] ;
+		return fact[n]/fact[k];
 	}
 
 	// Driver Code
